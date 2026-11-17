@@ -4,6 +4,7 @@ import { sql, type Kysely } from 'kysely';
 import type { Database } from './db/index.js';
 import { registerErrorHandling } from './errors.js';
 import { contactRoutes } from './routes/contacts.js';
+import { tagRoutes } from './routes/tags.js';
 
 export interface AppOptions {
   db: Kysely<Database>;
@@ -32,6 +33,7 @@ export async function buildApp({
   });
 
   contactRoutes(app, db);
+  tagRoutes(app, db);
 
   return app;
 }
