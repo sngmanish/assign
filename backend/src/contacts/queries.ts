@@ -64,19 +64,3 @@ export async function getContact(db: Kysely<Database>, id: string): Promise<Cont
   const tags = await tagsByContact(db, [id]);
   return toContactDto(row, tags.get(id) ?? []);
 }
-
-/** Basic list: newest first. Search, filters, sorting and keyset paging arrive in Task 7. */
-export async function listContacts(db: Kysely<Database>, limit: number): Promise<ContactDto[]> {
-  const rows = await db
-    .selectFrom('contacts')
-    .selectAll()
-    .orderBy('created_at', 'desc')
-    .orderBy('id', 'desc')
-    .limit(limit)
-    .execute();
-  const tags = await tagsByContact(
-    db,
-    rows.map((r) => r.id),
-  );
-  return rows.map((r) => toContactDto(r, tags.get(r.id) ?? []));
-}
