@@ -4,6 +4,7 @@ import {
   type ColumnType,
   type Generated,
   type JSONColumnType,
+  type LogEvent,
 } from 'kysely';
 import pg from 'pg';
 
@@ -48,11 +49,17 @@ export interface Database {
   contact_activities: ContactActivitiesTable;
 }
 
-export function createDb(connectionString: string, opts: { ssl?: boolean } = {}): Kysely<Database> {
+export function createDb(
+  connectionString: string,
+  opts: { ssl?: boolean; log?: (event: LogEvent) => void } = {},
+): Kysely<Database> {
   const pool = new pg.Pool({
     connectionString,
     max: 10,
     ssl: opts.ssl ? { rejectUnauthorized: false } : undefined,
   });
-  return new Kysely<Database>({ dialect: new PostgresDialect({ pool }) });
+  return new Kysely<Database>({
+    dialect: new PostgresDialect({ pool }),
+    ...(opts.log && { log: opts.log }),
+  });
 }

@@ -6,21 +6,32 @@ import { AppError, notFound } from '../errors.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const tagRefFields = {
+  tagId: z.string().optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Must not be empty')
+    .max(50, 'Must be at most 50 characters')
+    .optional(),
+};
+const exactlyOneTag = (b: { tagId?: string | undefined; name?: string | undefined }) =>
+  (b.tagId === undefined) !== (b.name === undefined);
+const exactlyOneTagIssue = { message: 'Provide exactly one of tagId or name', path: ['tagId'] };
+
 /** POST body: a tag by `tagId` or by `name` (created on the fly), exactly one of them. */
 export const addTagBodySchema = z
+  .strictObject(tagRefFields)
+  .refine(exactlyOneTag, exactlyOneTagIssue);
+
+/** Bulk body: up to 1,000 contact ids plus a tag. */
+export const MAX_BULK_CONTACTS = 1000;
+export const bulkAssignBodySchema = z
   .strictObject({
-    tagId: z.string().optional(),
-    name: z
-      .string()
-      .trim()
-      .min(1, 'Must not be empty')
-      .max(50, 'Must be at most 50 characters')
-      .optional(),
+    contactIds: z.array(z.string()).min(1).max(MAX_BULK_CONTACTS),
+    ...tagRefFields,
   })
-  .refine((b) => (b.tagId === undefined) !== (b.name === undefined), {
-    message: 'Provide exactly one of tagId or name',
-    path: ['tagId'],
-  });
+  .refine(exactlyOneTag, exactlyOneTagIssue);
 export type TagRef = z.infer<typeof addTagBodySchema>;
 
 /** A malformed id is a malformed request (400), wherever it appears. */
