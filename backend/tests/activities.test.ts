@@ -13,6 +13,7 @@ interface Activity {
   contactId: string;
   type: string;
   createdAt: string;
+  actor: string | null;
   details: Record<string, unknown>;
 }
 
@@ -98,7 +99,7 @@ describe('GET /contacts/:id/activities', () => {
     expect([...times].sort((x, y) => y - x)).toEqual(times); // newest first
   });
 
-  it('every activity has id, contactId, type, createdAt and details', async () => {
+  it('every activity has id, contactId, type, createdAt, actor and details', async () => {
     await call('PATCH', `/contacts/${adaId}`, { version: 1, firstName: 'Augusta' });
     await call('POST', `/contacts/${adaId}/tags`, { name: 'VIP' });
     const items = await activities(adaId);
@@ -109,6 +110,7 @@ describe('GET /contacts/:id/activities', () => {
         contactId: adaId,
         type: expect.stringMatching(/^(CONTACT_UPDATED|TAG_ADDED|TAG_REMOVED)$/),
         createdAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+        actor: 'Anonymous', // no X-Actor header sent
         details: expect.any(Object),
       });
     }

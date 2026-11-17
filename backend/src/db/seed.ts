@@ -317,7 +317,7 @@ function parseArgs(argv: string[]) {
 if (process.argv[1] && import.meta.filename === process.argv[1]) {
   const args = parseArgs(process.argv.slice(2));
   const cfg = loadConfig();
-  const db = createDb(cfg.databaseUrl, { ssl: cfg.ssl });
+  const db = createDb(cfg.databaseUrl, { ssl: cfg.ssl, caCert: cfg.databaseCaCert });
   try {
     await runMigrations(db);
     const existing = await contactsCount(db);

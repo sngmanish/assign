@@ -3,17 +3,20 @@ import pg from 'pg';
 import { z } from 'zod';
 import type { ContactsTable, Database } from '../db/index.js';
 import { AppError, notFound } from '../errors.js';
+import { NO_NUL_MESSAGE, noNul } from '../text.js';
 import { getContact, type ContactDto } from './queries.js';
 
 /** Trimmed text; an empty string becomes null. */
 const optionalText = (max: number) =>
   z
     .union([z.null(), z.string()])
+    .refine((v) => v === null || noNul(v), NO_NUL_MESSAGE)
     .transform((v) => (v === null ? null : v.trim() || null))
     .refine((v) => v === null || v.length <= max, `Must be at most ${max} characters`);
 
 const nameField = z
   .string()
+  .refine(noNul, NO_NUL_MESSAGE)
   .trim()
   .min(1, 'Must not be empty')
   .max(100, 'Must be at most 100 characters');
@@ -67,6 +70,7 @@ export async function updateContact(
   db: Kysely<Database>,
   id: string,
   body: UpdateBody,
+  actor: string,
 ): Promise<ContactDto> {
   try {
     return await db.transaction().execute(async (trx) => {
@@ -111,7 +115,7 @@ export async function updateContact(
 
       await trx
         .insertInto('contact_activities')
-        .values({ contact_id: id, type: 'CONTACT_UPDATED', details: { changes } })
+        .values({ contact_id: id, type: 'CONTACT_UPDATED', actor, details: { changes } })
         .execute();
 
       return (await getContact(trx, id))!;

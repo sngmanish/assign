@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 import { createDb, type Database } from '../src/db/index.js';
 import { runMigrations } from '../src/db/migrate.js';
+import { listTags } from '../src/tags/service.js';
 
 const MISSING = '00000000-0000-4000-8000-000000000000';
 
@@ -75,7 +76,10 @@ describe('tags', () => {
 
   describe('GET /tags', () => {
     it('is empty when there are no tags', async () => {
-      expect(await call('GET', '/tags')).toEqual({ status: 200, body: { items: [] } });
+      expect(await call('GET', '/tags')).toEqual({
+        status: 200,
+        body: { items: [], hasMore: false },
+      });
     });
 
     it('lists all tags sorted by name, ignoring case', async () => {
@@ -86,6 +90,44 @@ describe('tags', () => {
       expect(status).toBe(200);
       expect(body.items.map((t: { name: string }) => t.name)).toEqual(['Archive', 'Lead', 'vip']);
       expect(body.items[0]).toEqual({ id: expect.any(String), name: 'Archive' });
+      expect(body.hasMore).toBe(false);
+    });
+
+    it('is bounded: `limit` caps the list and hasMore says so', async () => {
+      for (const n of ['d', 'a', 'c', 'b', 'e']) await mkTag(n);
+      const names = (b: { items: { name: string }[] }) => b.items.map((t) => t.name);
+
+      const cut = (await call('GET', '/tags?limit=2')).body;
+      expect(names(cut)).toEqual(['a', 'b']);
+      expect(cut.hasMore).toBe(true);
+
+      const exact = (await call('GET', '/tags?limit=5')).body; // exactly all of them
+      expect(names(exact)).toEqual(['a', 'b', 'c', 'd', 'e']);
+      expect(exact.hasMore).toBe(false);
+
+      expect((await call('GET', '/tags?limit=50')).body.hasMore).toBe(false);
+    });
+
+    it('asks the database for only limit + 1 rows, so a huge tag table is never loaded', async () => {
+      const sqls: string[] = [];
+      const spy = createDb(
+        process.env.TEST_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5432/crm_test',
+        { log: (e) => void sqls.push(e.query.sql) },
+      );
+      try {
+        await listTags(spy, 3);
+      } finally {
+        await spy.destroy();
+      }
+      expect(sqls.join('\n')).toMatch(/from "tags".*limit \$1/s);
+    });
+
+    it('rejects a limit outside 1 to 1000 with a 400', async () => {
+      for (const limit of ['0', '1001', '-1', 'abc']) {
+        const r = await call('GET', `/tags?limit=${limit}`);
+        expect([limit, r.status]).toEqual([limit, 400]);
+        expect(r.body.error.code).toBe('BAD_REQUEST');
+      }
     });
   });
 

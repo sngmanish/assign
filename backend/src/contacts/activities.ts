@@ -12,6 +12,8 @@ export interface ActivityDto {
   contactId: string;
   type: ActivityType;
   createdAt: string;
+  /** Demo "acting as" label; null for rows written before it existed. */
+  actor: string | null;
   /** CONTACT_UPDATED: { changes: { field: { old, new } } }. TAG_ADDED / TAG_REMOVED: { tagId, tagName }. */
   details: Record<string, unknown>;
 }
@@ -44,6 +46,7 @@ export async function listActivities(
     contactId: r.contact_id,
     type: r.type,
     createdAt: new Date(r.created_at).toISOString(),
+    actor: r.actor,
     details: r.details,
   }));
 }

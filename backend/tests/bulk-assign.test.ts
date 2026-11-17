@@ -271,7 +271,7 @@ describe('POST /tags/bulk-assign', () => {
         expect(r.body.error).toEqual({
           code: 'INTERNAL_ERROR',
           message: 'Internal server error',
-          details: null,
+          details: { requestId: expect.any(String) },
         });
         expect(await allTags()).toEqual([]);
         expect(await links()).toEqual([]);

@@ -38,7 +38,7 @@ export async function runMigrations(db: Kysely<Database>): Promise<string[]> {
 // CLI entry: `npm run migrate`
 if (process.argv[1] && import.meta.filename === process.argv[1]) {
   const cfg = loadConfig();
-  const db = createDb(cfg.databaseUrl, { ssl: cfg.ssl });
+  const db = createDb(cfg.databaseUrl, { ssl: cfg.ssl, caCert: cfg.databaseCaCert });
   try {
     const applied = await runMigrations(db);
     console.log(applied.length ? `Applied: ${applied.join(', ')}` : 'No pending migrations');

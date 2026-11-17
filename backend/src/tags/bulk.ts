@@ -33,6 +33,7 @@ export async function bulkAssignTag(
   db: Kysely<Database>,
   contactIds: string[],
   ref: TagRef,
+  actor: string,
 ): Promise<BulkAssignResult> {
   const ids = validateContactIds(contactIds);
   if (ref.tagId !== undefined) assertUuid(ref.tagId, 'tagId');
@@ -83,6 +84,7 @@ export async function bulkAssignTag(
           added.map((contact_id) => ({
             contact_id,
             type: 'TAG_ADDED' as const,
+            actor,
             details: { tagId, tagName: tag.name },
           })),
         )

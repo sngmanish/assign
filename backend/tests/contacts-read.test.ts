@@ -165,7 +165,11 @@ describe('read endpoints', () => {
       });
       expect(res.statusCode).toBe(500);
       expect(res.json()).toEqual({
-        error: { code: 'INTERNAL_ERROR', message: 'Internal server error', details: null },
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Internal server error',
+          details: { requestId: expect.any(String) }, // only an id to find the log line
+        },
       });
       expect(res.body).not.toMatch(/ECONNREFUSED|127\.0\.0\.1|postgres/i);
       await brokenApp.close();

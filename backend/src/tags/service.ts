@@ -3,13 +3,14 @@ import { z } from 'zod';
 import { getContact, type ContactDto, type TagDto } from '../contacts/queries.js';
 import type { Database } from '../db/index.js';
 import { AppError, notFound } from '../errors.js';
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '../ids.js';
+import { NO_NUL_MESSAGE, noNul } from '../text.js';
 
 const tagRefFields = {
   tagId: z.string().optional(),
   name: z
     .string()
+    .refine(noNul, NO_NUL_MESSAGE)
     .trim()
     .min(1, 'Must not be empty')
     .max(50, 'Must be at most 50 characters')
@@ -36,20 +37,39 @@ export type TagRef = z.infer<typeof addTagBodySchema>;
 
 /** A malformed id is a malformed request (400), wherever it appears. */
 export function assertUuid(value: string, field: string): void {
-  if (!UUID.test(value)) {
+  if (!isUuid(value)) {
     throw new AppError(400, 'BAD_REQUEST', `Malformed ${field}`, [
       { path: field, message: 'Invalid UUID' },
     ]);
   }
 }
 
-export async function listTags(db: Kysely<Database>): Promise<TagDto[]> {
-  return db
+export const tagsQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(500)
+    .describe('Most tags to return. `hasMore` says whether there are more than that.'),
+});
+
+/**
+ * Tags sorted by name, at most `limit`. Anyone can create tags by naming them, so the list
+ * is bounded; `hasMore` makes the cut visible instead of silently hiding tags.
+ */
+export async function listTags(
+  db: Kysely<Database>,
+  limit = 500,
+): Promise<{ items: TagDto[]; hasMore: boolean }> {
+  const rows = await db
     .selectFrom('tags')
     .select(['id', 'name'])
     .orderBy(sql`lower(name)`)
     .orderBy('id')
+    .limit(limit + 1)
     .execute();
+  return { items: rows.slice(0, limit), hasMore: rows.length > limit };
 }
 
 export async function getTagById(db: Kysely<Database>, id: string): Promise<TagDto> {
@@ -88,8 +108,20 @@ export async function resolveTag(db: Kysely<Database>, ref: TagRef): Promise<Tag
   return findOrCreateTagByName(db, ref.name!);
 }
 
-async function assertContactExists(db: Kysely<Database>, id: string): Promise<void> {
-  const row = await db.selectFrom('contacts').select('id').where('id', '=', id).executeTakeFirst();
+/**
+ * Locks the contact row (404 if it doesn't exist) and holds the lock until the transaction
+ * ends. Every tag write, single or bulk, takes this lock BEFORE touching contact_tags, so
+ * they queue behind one another instead of each waiting for what the other holds, which
+ * deadlocks. It is the same lock bulk assign takes (FOR NO KEY UPDATE: it blocks other
+ * writers of the row but not the foreign-key checks of the inserts that follow).
+ */
+async function lockContact(db: Kysely<Database>, id: string): Promise<void> {
+  const row = await db
+    .selectFrom('contacts')
+    .select('id')
+    .where('id', '=', id)
+    .forNoKeyUpdate()
+    .executeTakeFirst();
   if (!row) throw notFound('Contact');
 }
 
@@ -101,11 +133,12 @@ export async function addTagToContact(
   db: Kysely<Database>,
   contactId: string,
   ref: TagRef,
+  actor: string,
 ): Promise<ContactDto> {
   return db.transaction().execute(async (trx) => {
     if (ref.tagId !== undefined) assertUuid(ref.tagId, 'tagId');
     // Check the contact before resolving the tag so a 404 never leaves a new tag behind.
-    await assertContactExists(trx, contactId);
+    await lockContact(trx, contactId);
     const tag = await resolveTag(trx, ref);
 
     const inserted = await trx
@@ -126,6 +159,7 @@ export async function addTagToContact(
         .values({
           contact_id: contactId,
           type: 'TAG_ADDED',
+          actor,
           details: { tagId: tag.id, tagName: tag.name },
         })
         .execute();
@@ -139,9 +173,10 @@ export async function removeTagFromContact(
   db: Kysely<Database>,
   contactId: string,
   tagId: string,
+  actor: string,
 ): Promise<ContactDto> {
   return db.transaction().execute(async (trx) => {
-    await assertContactExists(trx, contactId);
+    await lockContact(trx, contactId);
     const tag = await getTagById(trx, tagId);
 
     const removed = await trx
@@ -162,6 +197,7 @@ export async function removeTagFromContact(
       .values({
         contact_id: contactId,
         type: 'TAG_REMOVED',
+        actor,
         // The name is stored so history still reads correctly after a rename.
         details: { tagId: tag.id, tagName: tag.name },
       })

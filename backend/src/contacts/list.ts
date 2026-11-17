@@ -11,6 +11,7 @@ import {
   type SortField,
 } from './cursor.js';
 import { tagsByContact, toContactDto, type ContactDto } from './queries.js';
+import { NO_NUL_MESSAGE, noNul } from '../text.js';
 
 /** Counts stop here: past this we report "10000+" and only allow Next/Previous. */
 export const COUNT_CAP = 10_000;
@@ -18,18 +19,57 @@ export const COUNT_CAP = 10_000;
 const emptyToUndefined = (v: string | undefined) => (v === '' ? undefined : v);
 const dateOrDateTime = z.union([z.iso.date(), z.iso.datetime({ offset: true })]);
 
+export const MAX_SEARCH_TERMS = 5;
+
 export const listQuerySchema = z
   .object({
-    q: z.string().trim().max(100).optional().transform(emptyToUndefined),
-    tag: z.uuid().optional(),
-    company: z.string().trim().max(200).optional().transform(emptyToUndefined),
-    createdFrom: dateOrDateTime.optional(),
-    createdTo: dateOrDateTime.optional(),
-    sort: z.enum(['name', 'createdAt']).default('createdAt'),
-    order: z.enum(['asc', 'desc']).optional(),
-    limit: z.coerce.number().int().min(1).max(100).default(20),
-    cursor: z.string().max(2000).optional(),
-    page: z.coerce.number().int().min(1).max(1_000_000).optional(),
+    q: z
+      .string()
+      .refine(noNul, NO_NUL_MESSAGE)
+      .trim()
+      .max(100)
+      .optional()
+      .transform(emptyToUndefined)
+      // Each word adds four unindexed-capable ILIKE checks to both the page and count
+      // queries, and words under 3 characters can't use the trigram indexes at all. A hundred
+      // characters of single letters would otherwise mean ~50 words of full-table scanning.
+      .refine((v) => !v || v.split(/\s+/).length <= MAX_SEARCH_TERMS, {
+        message: `Use at most ${MAX_SEARCH_TERMS} search words`,
+      })
+      .describe(
+        `Search words (at most ${MAX_SEARCH_TERMS}), ANDed. Each may match first name, last name, email or phone.`,
+      ),
+    tag: z.uuid().optional().describe('Only contacts with this tag (tag id).'),
+    company: z
+      .string()
+      .refine(noNul, NO_NUL_MESSAGE)
+      .trim()
+      .max(200)
+      .optional()
+      .transform(emptyToUndefined)
+      .describe('Exact company name.'),
+    createdFrom: dateOrDateTime.optional().describe('Created on or after this date or timestamp.'),
+    createdTo: dateOrDateTime
+      .optional()
+      .describe('Created on or before this. A bare date means through the end of that day.'),
+    sort: z.enum(['name', 'createdAt']).default('createdAt').describe('Sort field.'),
+    order: z
+      .enum(['asc', 'desc'])
+      .optional()
+      .describe('Defaults to asc for name and desc for createdAt.'),
+    limit: z.coerce.number().int().min(1).max(100).default(20).describe('Page size.'),
+    cursor: z
+      .string()
+      .max(2000)
+      .optional()
+      .describe('From nextCursor or prevCursor of a previous response. Use instead of `page`.'),
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(1_000_000)
+      .optional()
+      .describe('Jump to a page number. Only while there are at most 10,000 matches.'),
   })
   .refine((v) => !(v.cursor && v.page), { message: 'Use either cursor or page, not both' })
   .refine((v) => !(v.createdFrom && v.createdTo && start(v.createdFrom) > start(v.createdTo)), {
