@@ -19,8 +19,13 @@ export class AppError extends Error {
 
 export const notFound = (what: string) => new AppError(404, 'NOT_FOUND', `${what} not found`);
 
+// Field-level details. Unknown keys are reported one per key, with the key as the path.
 const zodDetails = (err: ZodError) =>
-  err.issues.map((i) => ({ path: i.path.join('.'), message: i.message }));
+  err.issues.flatMap((i) =>
+    i.code === 'unrecognized_keys'
+      ? i.keys.map((key) => ({ path: [...i.path, key].join('.'), message: 'Unknown field' }))
+      : [{ path: i.path.join('.'), message: i.message }],
+  );
 
 /** Parse query/path params. A failure is a malformed request: 400. */
 export function parseRequest<T>(schema: ZodType<T>, input: unknown): T {
