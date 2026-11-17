@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Kysely } from 'kysely';
 import { z } from 'zod';
+import { activitiesQuerySchema, listActivities } from '../contacts/activities.js';
 import { searchContacts, listQuerySchema } from '../contacts/list.js';
 import { getContact } from '../contacts/queries.js';
 import { updateBodySchema, updateContact } from '../contacts/update.js';
@@ -23,5 +24,11 @@ export function contactRoutes(app: FastifyInstance, db: Kysely<Database>): void 
     const { id } = parseRequest(idParams, req.params);
     const body = parseBody(updateBodySchema, req.body);
     return updateContact(db, id, body);
+  });
+
+  app.get('/contacts/:id/activities', async (req) => {
+    const { id } = parseRequest(idParams, req.params);
+    const { limit } = parseRequest(activitiesQuerySchema, req.query);
+    return { items: await listActivities(db, id, limit) };
   });
 }
