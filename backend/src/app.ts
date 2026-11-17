@@ -2,6 +2,8 @@ import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { sql, type Kysely } from 'kysely';
 import type { Database } from './db/index.js';
+import { registerErrorHandling } from './errors.js';
+import { contactRoutes } from './routes/contacts.js';
 
 export interface AppOptions {
   db: Kysely<Database>;
@@ -15,6 +17,7 @@ export async function buildApp({
   logger = false,
 }: AppOptions): Promise<FastifyInstance> {
   const app = Fastify({ logger });
+  registerErrorHandling(app);
 
   if (corsOrigin) await app.register(cors, { origin: corsOrigin.split(',') });
 
@@ -27,6 +30,8 @@ export async function buildApp({
       return reply.code(503).send({ status: 'error', db: 'down' });
     }
   });
+
+  contactRoutes(app, db);
 
   return app;
 }
