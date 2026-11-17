@@ -19,7 +19,17 @@ Work through these tasks in order. After each one, make sure the code builds and
 11. **Activity endpoint:** recent activity for a contact, newest first.
 12. **README:** how to run it, the stack, key decisions, the data model, the concurrency approach, known issues, the scale notes and AI usage.
 
-**Task 13, prepare for Railway (after the README). Manish does the deployment himself, by hand, in the Railway web dashboard.** Do not use the Railway CLI or any command-line deploy, and do not create Railway projects or services. Claude Code's job is only to get the code ready and write the instructions:
+**Task 13, "acting as" demo user** There is no auth, so to show the brief's User A / User B scenario each browser tab picks a display name (Alice, Bob, Priya) and sends it with every request. The backend records it on activity entries. It's a demo label, not authentication, and is never used for permissions.
+
+- Add a nullable `actor text` column to `contact_activities` in a **new** migration. Never edit a migration that has already run.
+- Read an optional `X-Actor` header in one place (a Fastify hook). Validate it with Zod: trimmed, 1–50 characters. If it's missing or invalid, use "Anonymous" instead of rejecting the request.
+- Save `actor` on every activity write: CONTACT_UPDATED, TAG_ADDED, TAG_REMOVED, and every row of the bulk-assign insert.
+- Return `actor` in the `GET /contacts/:id/activities` items.
+- CORS: allow the `X-Actor` header, or requests from the Vercel frontend fail the browser's preflight check.
+- Leave the 409 conflict response unchanged. It already returns the latest contact, and the frontend does a three-way compare (loaded values, my edits, latest values) to show what the other user changed and to offer "Merge both".
+- Tests: an update, a tag add, a tag remove and a bulk assign each store the actor from the header, and a missing or too-long header stores "Anonymous".
+- README: under known limitations, say the actor is a demo label sent in a header and can be faked; in production it comes from the logged-in session. Add a "Try the conflict scenario" section: open the same contact in two tabs, pick Alice and Bob, save in Bob's tab, then save in Alice's tab and see the dialog.
+**Task 14, prepare for Railway (after the README). Manish does the deployment himself, by hand, in the Railway web dashboard.** Do not use the Railway CLI or any command-line deploy, and do not create Railway projects or services. Claude Code's job is only to get the code ready and write the instructions:
 
 - Make the backend read `DATABASE_URL`, `PORT` and `CORS_ORIGIN` from environment variables, and connect with SSL when deployed.
 - On start, run migrations and then the empty-table seed of 20,000 contacts, so no manual commands are needed after deploying.
