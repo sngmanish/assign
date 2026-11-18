@@ -1,0 +1,44 @@
+{
+  "name": "crm-frontend",
+  "private": true,
+  "type": "module",
+  "description": "CRM Contact Workspace frontend: the app, its component package (ui) and Storybook (docs)",
+  "workspaces": [
+    "packages/*",
+    "app"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @crm/web",
+    "build": "npm run build -w @crm/web",
+    "preview": "npm run preview -w @crm/web",
+    "docs": "npm run dev -w @crm/docs",
+    "docs:build": "npm run build -w @crm/docs",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm run docs:build",
+    "test:e2e": "npm run test:e2e -w @crm/web --",
+    "test:e2e:headed": "npm run test:e2e:headed -w @crm/web --",
+    "test:e2e:ui": "npm run test:e2e:ui -w @crm/web --",
+    "test:e2e:report": "npm run test:e2e:report -w @crm/web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}

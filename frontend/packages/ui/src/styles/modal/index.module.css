@@ -1,0 +1,95 @@
+.hl-modal {
+  align-items: center;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  position: fixed;
+  z-index: var(--hl-z-index_modal, 1000);
+}
+
+.hl-modal-content {
+  background: var(--hl-background);
+  border: 1px solid var(--hl-border);
+  border-radius: var(--hl-radius-lg);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  color: var(--hl-foreground);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--hl-font-sans);
+  gap: 16px;
+  max-height: calc(100vh - 32px);
+  padding: 24px;
+  position: relative;
+  width: 100%;
+}
+
+.hl-modal--small .hl-modal-content {
+  max-width: 32rem;
+}
+
+.hl-modal--medium .hl-modal-content {
+  max-width: 42rem;
+}
+
+.hl-modal__header {
+  padding-right: 24px;
+}
+
+.hl-modal .hl-modal__title {
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  font-size: 1.125rem;
+  font-weight: var(--hl-font-weight-semibold, 600);
+  letter-spacing: -0.025em;
+  line-height: 1;
+  margin: 0;
+}
+
+/* the small ✕ in the corner, faded until hovered or focused */
+.hl-modal .hl-modal__header .hl-modal__close {
+  border-radius: var(--hl-radius-sm, 0.25rem);
+  color: var(--hl-foreground);
+  height: 16px;
+  opacity: 0.7;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  transition: opacity 150ms ease;
+  width: 16px;
+}
+
+.hl-modal .hl-modal__header .hl-modal__close:hover,
+.hl-modal .hl-modal__header .hl-modal__close:focus-visible {
+  opacity: 1;
+}
+
+.hl-modal .hl-modal__header .hl-modal__close:focus-visible {
+  outline: 2px solid var(--hl-ring);
+  outline-offset: 2px;
+}
+
+.hl-modal .hl-modal__header .hl-modal__close svg {
+  height: 16px;
+  width: 16px;
+}
+
+.hl-modal__body {
+  font-size: var(--hl-text-sm);
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
+.hl-modal-active {
+  overflow: hidden;
+}
+
+.hl-modal-backdrop {
+  background: var(--hl-overlay);
+  inset: 0;
+  overscroll-behavior: none;
+  position: fixed;
+  z-index: calc(var(--hl-z-index_modal, 1000) - 1);
+}

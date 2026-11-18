@@ -1,0 +1,37 @@
+/*
+ * App-wide base styles. The design system assumes a host page that already sizes boxes with
+ * border-box (Tailwind's preflight does this); without it, padded cells such as the data table's
+ * grow past the widths the table computes.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--hl-background);
+  color: var(--hl-foreground);
+}
+
+/* Links: the text colour (not browser blue/purple), with a soft underline that firms up on hover */
+a {
+  color: var(--hl-foreground);
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 4px;
+  transition:
+    color 150ms ease,
+    text-decoration-color 150ms ease;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+a:focus-visible {
+  border-radius: var(--hl-radius-sm, 0.25rem);
+  outline: 2px solid var(--hl-ring);
+  outline-offset: 2px;
+}

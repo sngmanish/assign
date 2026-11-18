@@ -1,0 +1,30 @@
+/* Contact on the left, activity on the right; one column under each other on narrow screens. */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: var(--hl-space-6);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--hl-space-4);
+  }
+}
+
+/* "← Contacts": quiet until hovered */
+.back {
+  align-items: center;
+  color: var(--hl-muted-foreground);
+  display: inline-flex;
+  font-size: var(--hl-text-sm);
+  font-weight: var(--hl-font-weight-medium, 500);
+  gap: 6px;
+  margin-bottom: var(--hl-space-4);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--hl-foreground);
+}

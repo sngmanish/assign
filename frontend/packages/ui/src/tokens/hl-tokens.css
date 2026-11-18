@@ -1,0 +1,125 @@
+/*
+ * hl design tokens — shadcn-style (zinc) light + dark theme.
+ * Toggle dark mode by adding the `dark` class (or data-theme="dark") to <html>.
+ * Only tokens that components actually use are defined here.
+ */
+
+:root {
+  color-scheme: light;
+
+  --hl-background: #ffffff;
+  --hl-foreground: #09090b;
+  --hl-muted: #f4f4f5;
+  --hl-muted-foreground: #71717a;
+  --hl-secondary: #f4f4f5;
+  --hl-accent: #f4f4f5;
+  --hl-overlay: rgb(0 0 0 / 0.5);
+
+  --hl-border: #e4e4e7;
+  --hl-input: #e4e4e7;
+  --hl-input-surface: transparent;
+  --hl-ring: #a1a1aa;
+
+  --hl-primary: #18181b;
+  --hl-primary-foreground: #fafafa;
+  --hl-primary-hover: color-mix(in srgb, var(--hl-primary) 90%, var(--hl-background));
+  --hl-primary-press: color-mix(in srgb, var(--hl-primary) 80%, var(--hl-background));
+
+  --hl-destructive: #dc2626;
+
+  --hl-success: #16a34a;
+  /* positive feedback (the success toast's check mark): a softer, brighter green than --hl-success */
+  --hl-positive: #12b76a;
+
+  --hl-warning: #d97706;
+
+  --hl-info: #2563eb;
+
+  --hl-radius: 0.625rem;
+  --hl-radius-sm: calc(var(--hl-radius) - 4px);
+  --hl-radius-md: calc(var(--hl-radius) - 2px);
+  --hl-radius-lg: var(--hl-radius);
+  --hl-radius-xl: calc(var(--hl-radius) + 4px);
+  --hl-radius-full: 9999px;
+
+  --hl-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --hl-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  --hl-space-0: 0;
+  --hl-space-1: 0.25rem;
+  --hl-space-2: 0.5rem;
+  --hl-space-3: 0.75rem;
+  --hl-space-4: 1rem;
+  --hl-space-5: 1.25rem;
+  --hl-space-6: 1.5rem;
+  --hl-space-7: 1.75rem;
+  --hl-space-8: 2rem;
+  --hl-space-10: 2.5rem;
+  --hl-space-12: 3rem;
+
+  --hl-font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --hl-font-weight-regular: 400;
+  --hl-font-weight-medium: 500;
+  --hl-font-weight-semibold: 600;
+
+  --hl-text-xs: 0.75rem;
+  --hl-leading-xs: 1rem;
+  --hl-text-sm: 0.875rem;
+  --hl-leading-sm: 1.25rem;
+  --hl-text-base: 1rem;
+  --hl-leading-base: 1.5rem;
+  --hl-text-xl: 1.25rem;
+  --hl-leading-xl: 1.75rem;
+  --hl-text-2xl: 1.5rem;
+  --hl-leading-2xl: 2rem;
+  --hl-text-3xl: 1.875rem;
+  --hl-leading-3xl: 2.25rem;
+  --hl-text-4xl: 2.25rem;
+  --hl-leading-4xl: 2.5rem;
+}
+
+.dark,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --hl-background: #09090b;
+  --hl-foreground: #fafafa;
+  --hl-muted: #27272a;
+  --hl-muted-foreground: #a1a1aa;
+  --hl-secondary: #27272a;
+  --hl-accent: #27272a;
+  --hl-overlay: rgb(0 0 0 / 0.7);
+
+  --hl-border: rgb(255 255 255 / 0.1);
+  --hl-input: rgb(255 255 255 / 0.15);
+  --hl-input-surface: color-mix(in srgb, var(--hl-input) 30%, transparent);
+  --hl-ring: #71717a;
+
+  --hl-primary: #fafafa;
+  --hl-primary-foreground: #18181b;
+
+  /* brighter status colors so dark text stays readable on solid fills */
+  --hl-destructive: #f87171;
+  --hl-success: #4ade80;
+  --hl-positive: #32d583;
+  --hl-warning: #fbbf24;
+  --hl-info: #60a5fa;
+
+  --hl-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --hl-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+}
+
+html {
+  background: var(--hl-background);
+}
+
+body {
+  background: var(--hl-background);
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  font-size: var(--hl-text-sm);
+  line-height: var(--hl-leading-sm);
+  -webkit-font-smoothing: antialiased;
+}

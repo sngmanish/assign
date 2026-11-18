@@ -1,0 +1,39 @@
+{
+  "name": "@crm/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "description": "Components: the design-system components and the CRM components built from them",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens/index.css",
+    "./*": "./src/*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.5.0",
+    "@floating-ui/react": "0.25.1",
+    "@tanstack/react-table": "^8.20.5",
+    "classnames": "^2.2.3",
+    "date-fns": "^2.30.0",
+    "flag-icons": "^7.2.1",
+    "google-libphonenumber": "3.2.40",
+    "inputmask": "^5.0.10"
+  },
+  "devDependencies": {
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@types/google-libphonenumber": "^7.4.30",
+    "@types/node": "^22.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "icons": "node scripts/generate-icons.mjs"
+  }
+}

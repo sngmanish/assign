@@ -1,0 +1,34 @@
+.hl-tag {
+  align-items: center;
+  background-color: var(--hl-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--hl-radius-md);
+  color: var(--hl-foreground);
+  display: inline-flex;
+  font-family: var(--hl-font-sans);
+  font-size: var(--hl-text-xs);
+  font-weight: var(--hl-font-weight-medium);
+  gap: var(--hl-space-1);
+  justify-content: center;
+  line-height: var(--hl-leading-xs);
+  outline: none;
+  padding: 1px var(--hl-space-2);
+  text-decoration: none;
+  transition:
+    background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.hl-tag--default {
+  text-decoration: none;
+}
+.hl-tag .label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hl-tag .hl-tag-cross {
+  margin-left: var(--hl-space-1);
+}

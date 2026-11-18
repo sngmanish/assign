@@ -1,0 +1,281 @@
+.hl-input-wrapper {
+  display: inline-block;
+}
+.hl-input-wrapper .hl-input-label {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.hl-input-wrapper .hl-input-label-text {
+  vertical-align: text-bottom;
+}
+.hl-input-wrapper .hl-input-label {
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  font-size: var(--hl-text-sm);
+  font-weight: var(--hl-font-weight-medium);
+  line-height: var(--hl-leading-sm);
+}
+
+.hl-input {
+  align-items: center;
+  cursor: text;
+  display: flex;
+  position: relative;
+  width: 100%;
+}
+
+.hl-input-common-control {
+  background: var(--hl-background);
+  border: none;
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  font-size: var(--hl-text-sm);
+  font-weight: var(--hl-font-weight-regular);
+  line-height: var(--hl-leading-sm);
+}
+
+.hl-input-required {
+  vertical-align: top;
+}
+
+.hl-input-validation {
+  display: flex;
+  gap: 4px;
+}
+
+.hl-input-validation--icon {
+  display: flex;
+}
+
+.hl-input-prefix {
+  align-items: center;
+  display: flex;
+}
+
+.hl-input-prefix {
+  left: 16px;
+  position: absolute;
+}
+
+.hl-input-prefix + .hl-input__control {
+  padding-left: 39px;
+}
+
+.hl-input__right-options {
+  display: flex;
+  gap: var(--hl-space-1);
+  position: absolute;
+  right: var(--hl-space-1);
+}
+
+.hl-input__type-search:not(.hl-input--small) .hl-input__action-btn--medium {
+  margin-right: var(--hl-space-2);
+}
+
+.hl-input__type-search .hl-input__action-btn--small {
+  margin-right: var(--hl-space-1);
+}
+
+.hl-input__type-search .hl-input-common-control[value=''] + .hl-input__right-options {
+  display: none;
+}
+
+.hl-input__type-number .hl-input__right-options {
+  right: var(--hl-space-2);
+}
+
+.hl-input__type-number input {
+  -moz-appearance: textfield;
+}
+
+.hl-input__actionbar {
+  align-items: center;
+  display: flex;
+  flex-grow: 1;
+  gap: 4px;
+}
+
+.hl-input__actionbar .hl-input__actions .hl-input__action-btn--small {
+  border-radius: var(--hl-radius-md);
+  padding: var(--hl-space-1);
+}
+
+.hl-input__actionbar .hl-input__action-btn--medium:not([disabled]):focus-visible,
+.hl-input__actionbar .hl-input__action-btn--small:not([disabled]):focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-ring) 50%, transparent);
+}
+
+.hl-input__actions {
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
+
+.hl-input--small .hl-input__control {
+  border-radius: var(--hl-radius-md);
+}
+
+.hl-input--small .hl-input-prefix {
+  left: 12px;
+}
+
+.hl-input--small .hl-input-prefix + .hl-input__control {
+  padding-left: 35px;
+}
+
+.hl-input:hover .hl-input__control {
+  border-color: var(--hl-input);
+}
+
+.hl-input--success .hl-input__control,
+.hl-input--success:hover .hl-input__control {
+  border-color: var(--hl-success);
+}
+
+.hl-input--error .hl-input__control,
+.hl-input--error:hover .hl-input__control {
+  border-color: var(--hl-destructive);
+}
+
+.hl-input--error:focus-within .hl-input__control {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-destructive) 30%, transparent);
+}
+
+.hl-input--disabled {
+  cursor: not-allowed;
+}
+
+.hl-input--disabled .hl-input__control,
+.hl-input--disabled .hl-input__right-options {
+  background: var(--hl-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hl-input--disabled:hover .hl-input__control {
+  border-color: var(--hl-border);
+}
+
+.hl-input:focus-within {
+  outline: none;
+}
+
+.hl-input:focus-within .hl-input__control {
+  border-color: var(--hl-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-ring) 50%, transparent);
+}
+
+.hl-input--has-left-addon .hl-input__control {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.hl-input--readonly {
+  cursor: default;
+}
+
+.hl-input--readonly .hl-input__control,
+.hl-input--readonly .hl-input__right-options {
+  background: var(--hl-muted);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.hl-input--readonly:hover .hl-input__control {
+  border: 1px solid var(--hl-border);
+}
+
+.hl-input--readonly:focus-within .hl-input__control {
+  border-color: var(--hl-border);
+  box-shadow: none;
+}
+
+.hl-input__control {
+  background: var(--hl-input-surface);
+  border: 1px solid var(--hl-input);
+  border-radius: var(--hl-radius-md);
+  box-shadow: var(--hl-shadow-xs);
+  box-sizing: border-box;
+  height: 36px;
+  overflow: hidden;
+  padding: 4px 3px 4px 12px;
+  transition:
+    border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.hl-input__control:not(:has(+ *)) {
+  margin-right: var(--hl-space-3, 12px);
+}
+
+.hl-input__control--small {
+  height: 32px;
+  padding: 2px 3px 2px 10px;
+}
+
+.hl-input__control:focus-visible {
+  outline: none;
+}
+
+.hl-input__control:disabled {
+  background: var(--hl-muted);
+  cursor: not-allowed;
+}
+
+.hl-input__control[readOnly] {
+  background: var(--hl-muted);
+  cursor: not-allowed;
+}
+
+.hl-input__control::-webkit-search-cancel-button,
+.hl-input__control::-webkit-inner-spin-button {
+  display: none;
+}
+
+.hl-input__addon {
+  align-self: start;
+  background: var(--hl-muted);
+  border: 1px solid var(--hl-input);
+  box-sizing: border-box;
+  color: var(--hl-muted-foreground);
+  font-size: var(--hl-text-sm);
+  height: 36px;
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+
+.hl-input__addon:not([disabled]):hover {
+  border-color: var(--hl-input);
+}
+
+.hl-input__addon:not([disabled]):focus-visible {
+  border-color: var(--hl-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-ring) 50%, transparent);
+  z-index: 1;
+}
+
+.hl-input__addon:not([disabled]).hl-simple-select--trigger-left:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-ring) 50%, transparent);
+}
+
+.hl-input__addon--iconAlone {
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 0.75rem;
+}
+
+.hl-input__addon-left {
+  border-bottom-right-radius: 0;
+  border-right: none;
+  border-top-right-radius: 0;
+}
+
+.hl-sr-only {
+  display: inline-block;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  vertical-align: top;
+  width: 1px;
+}

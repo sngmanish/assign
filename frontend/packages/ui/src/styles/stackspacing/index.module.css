@@ -1,0 +1,24 @@
+:root {
+  --hl-stack-row-spacing: var(--hl-space-0, 0);
+  --hl-stack-column-spacing: var(--hl-space-0, 0);
+}
+
+.hl-rows-stack,
+.hl-columns-stack {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.hl-rows-stack > *:not(:last-child) {
+  margin: 0;
+  margin-bottom: var(--hl-stack-row-spacing);
+}
+
+.hl-columns-stack {
+  flex-direction: row;
+}
+
+.hl-columns-stack > *:not(:last-child) {
+  margin: 0;
+  margin-right: var(--hl-stack-column-spacing);
+}

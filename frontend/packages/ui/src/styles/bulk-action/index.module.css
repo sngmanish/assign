@@ -1,0 +1,22 @@
+.hl-bulk-action {
+  align-items: center;
+  background: var(--surface-white, var(--hl-background));
+  border: 1px solid var(--surface-mid-grey, var(--hl-border));
+  border-radius: var(--hl-radius-lg);
+
+  box-shadow: var(--hl-shadow-md);
+  display: inline-flex;
+  gap: var(--hl-space-2);
+  justify-content: center;
+  padding: var(--hl-space-0) var(--hl-space-4);
+}
+
+.hl-bulk-action__select {
+  align-items: center;
+  border-right: 1px solid var(--surface-mid-grey, var(--hl-border));
+  display: inline-flex;
+  gap: var(--hl-space-2);
+  margin-right: var(--hl-space-2);
+  padding: var(--hl-space-2) var(--hl-space-2) var(--hl-space-2) var(--hl-space-0);
+  padding-right: var(--hl-space-2);
+}

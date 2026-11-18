@@ -1,0 +1,175 @@
+.hl-selectmenu {
+  position: relative;
+}
+
+.hl-selectmenu.selectmenu-button {
+  display: inline-block;
+}
+
+.hl-selectmenu--panel {
+  background-color: var(--hl-background);
+  border: 1px solid var(--hl-border, var(--hl-input));
+  border-radius: var(--hl-radius-xl, 16px);
+  box-shadow: var(
+    --hl-shadow-md,
+    0 10px 16px -4px rgb(0 0 0 / 0.1),
+    0 4px 6px -2px rgb(0 0 0 / 0.04)
+  );
+  max-height: max-content;
+  max-width: 100%;
+  min-width: 300px;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  width: 100%;
+  z-index: var(--hl-z-index_selectmenu, 800);
+}
+
+.hl-selectmenu--panel .hl-selectmenu__creatableselect-wrapper {
+  align-items: center;
+  background-color: var(--hl-background);
+  display: flex;
+  padding: 8px;
+}
+
+.hl-selectmenu--panel .hl-selectmenu__creatableselect-wrapper .hl-selectmenu__creatableselect-btn {
+  align-items: center;
+  background: inherit;
+  border: none;
+  border-radius: var(--hl-radius-xl, 16px);
+  cursor: pointer;
+  display: flex;
+  padding: 12px 8px;
+  width: 100%;
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu__creatableselect-wrapper
+  .hl-selectmenu__creatableselect-btn:not([disabled]):hover {
+  background-color: var(--hl-accent);
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu__creatableselect-wrapper
+  .hl-selectmenu__creatableselect-btn:not([disabled]):active {
+  background-color: var(--hl-accent);
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu__creatableselect-wrapper
+  .hl-selectmenu__creatableselect-btn:not([disabled]):focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hl-ring) 50%, transparent);
+  outline: none;
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu__creatableselect-wrapper
+  .hl-selectmenu__creatableselect-btn:disabled {
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 50%;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options-panel {
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  max-height: 307px;
+  overflow: auto;
+  padding: 8px 0;
+  position: relative;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options-panel .hl-selectmenu-options__no-padding {
+  padding: 0;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option {
+  padding: 0 8px;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option.focused,
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option--focused {
+  background-color: var(--hl-accent);
+  outline: none;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option:not(.locked).selected {
+  background-color: var(--hl-accent);
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option:not(.locked).selected:hover {
+  background: var(--hl-accent);
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu-options
+  .hl-selectmenu-option:not(.locked).selected:focus-visible,
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option:not(.locked).selected:focus {
+  background: var(--hl-accent);
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option:not(.locked).selected:active {
+  background: var(--hl-accent);
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option.locked {
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.hl-selectmenu--panel
+  .hl-selectmenu-options
+  .hl-selectmenu-option.locked
+  .hl-selectmenu-option__content {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option__content {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option__content-left {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option__content-left > :first-child {
+  flex-shrink: 0;
+}
+
+.hl-selectmenu--panel .hl-selectmenu-options .hl-selectmenu-option__label {
+  align-items: center;
+  display: flex;
+}
+
+.hl-selectmenu--searchbar {
+  border-bottom: 0.0625rem solid var(--hl-border);
+  padding: 8px;
+}
+.hl-selectmenu-searchbar {
+  width: 100%;
+}
+
+@media screen and (max-width: 476px) {
+  .hl-selectmenu {
+    min-width: 8.5rem;
+  }
+
+  .hl-selectmenu.selectmenu-button {
+    min-width: inherit;
+  }
+}

@@ -1,0 +1,17 @@
+.hl-loader {
+  display: flex;
+  z-index: var(--hl-z-index_loader, 1099);
+}
+.hl-loader svg {
+  animation: var(
+    --hl-animation_indicator-spin,
+    indicator-spin 1.3s cubic-bezier(0.46, 0.35, 0.39, 0.85) infinite
+  );
+}
+
+.hl-loader--absolute {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}

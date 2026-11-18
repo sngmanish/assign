@@ -1,0 +1,14 @@
+.hl-form {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hl-form.hl-form-column {
+  flex-direction: column;
+}
+
+.hl-form.hl-form-column .hl-form--item:not(:first-child) {
+  margin-top: 1rem;
+}

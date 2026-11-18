@@ -1,0 +1,11 @@
+.hl-skeleton {
+  background-color: var(--hl-accent);
+  border-radius: var(--hl-radius-md);
+  display: inline-block;
+  line-height: 1;
+  width: 100%;
+}
+
+.hl-skeleton-animation {
+  animation: var(--hl-animation_skeleton-loading);
+}

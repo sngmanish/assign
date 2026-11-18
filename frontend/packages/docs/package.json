@@ -1,0 +1,23 @@
+{
+  "name": "@crm/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Storybook for the components in @crm/ui",
+  "scripts": {
+    "dev": "storybook dev -p 6006",
+    "build": "storybook build"
+  },
+  "dependencies": {
+    "@crm/ui": "*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "^10.6.7",
+    "@storybook/addon-docs": "^10.6.7",
+    "@storybook/react-vite": "^10.6.7",
+    "storybook": "^10.6.7",
+    "vite": "^8.3.8"
+  }
+}

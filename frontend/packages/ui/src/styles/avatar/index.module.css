@@ -1,0 +1,31 @@
+.hl-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100%;
+  font-family: var(--hl-font-sans);
+  font-weight: var(--hl-font-weight-medium);
+  position: relative;
+}
+.hl-avatar__type-initial {
+  background-color: var(--hl-muted);
+  color: var(--hl-foreground);
+}
+.hl-avatar__size-sm {
+  font-size: 12px;
+  height: 24px;
+  line-height: 16px;
+  width: 24px;
+}
+.hl-avatar__size-md {
+  font-size: 14px;
+  height: 32px;
+  line-height: 20px;
+  width: 32px;
+}
+.hl-avatar__size-lg {
+  font-size: 24px;
+  height: 64px;
+  line-height: 32px;
+  width: 64px;
+}

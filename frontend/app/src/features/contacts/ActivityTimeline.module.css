@@ -1,0 +1,38 @@
+/*
+ * The activity list: a fixed-height box with its own scroll bar, so a long history doesn't stretch
+ * the page. The scroll bar is always shown at a fixed 8px width (macOS would otherwise hide an
+ * overlay scroll bar until you scroll), and its space is always reserved, so text never shifts.
+ */
+.scroll {
+  max-height: min(560px, calc(100vh - 240px));
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding-right: var(--hl-space-2);
+}
+
+/* Chrome, Edge, Safari: styling the scroll bar turns it into a classic, always-visible one */
+.scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--hl-border);
+  border-radius: 4px;
+}
+
+.scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--hl-muted-foreground);
+}
+
+/* Firefox (no ::-webkit-scrollbar): the standard properties. Chrome would ignore the rules above
+   if these applied there too. */
+@supports not selector(::-webkit-scrollbar) {
+  .scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hl-border) transparent;
+  }
+}

@@ -1,0 +1,7 @@
+.hl-divider {
+  background: var(--hl-border);
+  border: 0;
+  height: 1px;
+  margin-block-end: var(--hl-space-2);
+  margin-block-start: var(--hl-space-2);
+}

@@ -1,0 +1,13 @@
+.hl-phone-input {
+  display: block;
+}
+
+.hl-phone-input__input {
+  width: 340px;
+}
+
+.hl-phone-input-no-results {
+  margin: 0;
+  padding: var(--hl-space-4);
+  text-align: center;
+}

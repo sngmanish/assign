@@ -1,0 +1,69 @@
+/* Typography classes used by the Text and Heading components. */
+
+.hl-typo_heading--primary,
+.hl-typo_heading--secondary_interactive {
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  margin: 0;
+}
+.hl-typo_heading--primary {
+  font-weight: var(--hl-font-weight-semibold);
+  letter-spacing: -0.025em;
+}
+.hl-typo_heading--secondary_interactive {
+  font-weight: var(--hl-font-weight-medium);
+}
+
+.hl-typo_heading-size--xl {
+  font-size: var(--hl-text-4xl);
+  line-height: var(--hl-leading-4xl);
+}
+.hl-typo_heading-size--lg {
+  font-size: var(--hl-text-3xl);
+  line-height: var(--hl-leading-3xl);
+}
+.hl-typo_heading-size--md {
+  font-size: var(--hl-text-2xl);
+  line-height: var(--hl-leading-2xl);
+}
+.hl-typo_heading-size--sm {
+  font-size: var(--hl-text-xl);
+  line-height: var(--hl-leading-xl);
+}
+.hl-typo_heading-size--xs {
+  font-size: var(--hl-text-base);
+  line-height: var(--hl-leading-base);
+}
+
+.hl-typo_text--regular,
+.hl-typo_text--interactive,
+.hl-typo_text--bold {
+  color: var(--hl-foreground);
+  font-family: var(--hl-font-sans);
+  margin: 0;
+}
+.hl-typo_text--regular {
+  font-weight: var(--hl-font-weight-regular);
+}
+.hl-typo_text--interactive {
+  font-weight: var(--hl-font-weight-medium);
+}
+.hl-typo_text--bold {
+  font-weight: var(--hl-font-weight-semibold);
+}
+
+.hl-typo_text_size--lg {
+  font-size: var(--hl-text-base);
+  line-height: var(--hl-leading-base);
+}
+.hl-typo_text_size--md {
+  font-size: var(--hl-text-sm);
+  line-height: var(--hl-leading-sm);
+}
+.hl-typo_text_size--sm {
+  font-size: var(--hl-text-xs);
+  line-height: var(--hl-leading-xs);
+}
+.hl-typo_text_color {
+  color: var(--hl-foreground);
+}

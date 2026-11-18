@@ -4,13 +4,14 @@ A contact workspace for a CRM: search, filter, sort and page through contacts, e
 
 This repository is a monorepo:
 
-| Folder | What | Status |
-| --- | --- | --- |
-| `backend/` | REST API (Fastify, Kysely, Postgres), migrations, seed script, tests | Done |
-| `frontend/` | Web UI | Not started (separate spec) |
-| `docs/backend-spec.md` | The backend spec this implementation follows | |
+| Folder                  | What                                                                                                                                                                                           | Status                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `backend/`              | REST API (Fastify, Kysely, Postgres), migrations, seed script, tests                                                                                                                           | Done                                                                               |
+| `frontend/`             | Web UI (React 18, Vite, RTK Query): npm-workspaces monorepo (`app`, `packages/ui`, `packages/docs` for Storybook), Playwright end-to-end tests, see [`frontend/README.md`](frontend/README.md) | Done (list, detail, edit with conflict handling, tags and bulk tagging, acting-as) |
+| `docs/backend-spec.md`  | The backend spec this implementation follows                                                                                                                                                   |                                                                                    |
+| `docs/frontend-spec.md` | The frontend spec this implementation follows                                                                                                                                                  |                                                                                    |
 
-Contents: [Run it](#run-it) · [Deploying to Railway](#deploying-to-railway-manual-via-dashboard) · [Tech stack](#tech-stack) · [API](#api) · [Key decisions](#key-decisions) · [Data model](#data-model) · [Concurrency](#concurrency-approach) · [Pagination and the capped count](#pagination-and-the-capped-count) · [Tests](#tests) · [Known issues](#known-issues) · [Scale notes](#scale-notes) · [AI usage](#ai-usage)
+Contents: [Run it](#run-it) · [Deploying to Railway](#deploying-to-railway-manual-via-dashboard) · [Deploying to Vercel](#deploying-to-vercel-manual-via-dashboard) · [Tech stack](#tech-stack) · [API](#api) · [Key decisions](#key-decisions) · [Data model](#data-model) · [Concurrency](#concurrency-approach) · [Pagination and the capped count](#pagination-and-the-capped-count) · [Tests](#tests) · [Known issues](#known-issues) · [Scale notes](#scale-notes) · [AI usage](#ai-usage)
 
 ---
 
@@ -31,7 +32,15 @@ npm install
 npm run migrate        # applies the schema
 npm run seed           # ~20,000 generated contacts, about a second
 npm run dev            # API on http://localhost:3000
+
+# 4. The web app, in a second terminal
+cd frontend
+cp app/.env.example app/.env   # VITE_API_URL=http://localhost:3000
+npm install
+npm run dev                    # http://localhost:5173
 ```
+
+The frontend's own commands (lint, Storybook, end-to-end tests) are in [`frontend/README.md`](frontend/README.md).
 
 Check it:
 
@@ -49,35 +58,35 @@ Notes:
 
 ### Environment variables
 
-| Variable | Purpose | Default (local only) |
-| --- | --- | --- |
-| `DATABASE_URL` | Postgres connection string. Required when `NODE_ENV=production`. | `postgres://postgres:postgres@localhost:5432/crm` |
-| `TEST_DATABASE_URL` | Database the tests run against. Tests wipe its tables. | `…/crm_test` |
-| `PORT` | HTTP port | `3000` |
-| `CORS_ORIGIN` | Allowed browser origin(s), comma separated (spaces are ignored). **Required when `NODE_ENV=production`**; CORS is off if unset locally. | unset |
-| `DATABASE_SSL` | `true` or `false`. Forces SSL on or off for the database connection. | SSL on when `NODE_ENV=production`, off otherwise |
-| `SEED_ON_START` | `true` or `false`. Seed demo contacts on start if the table is empty. | `true` |
-| `DATABASE_CA_CERT` | PEM of the database's CA. When set, the TLS certificate is **verified**; without it the connection is encrypted but the certificate is not checked. Literal `\n` is accepted for newlines. | unset |
-| `STATEMENT_TIMEOUT_MS` | Server-side cap on a single request's query. Postgres cancels it, and the API answers 503. | `10000` |
-| `RATE_LIMIT_MAX` | Requests per minute per client. `/health` and `/docs` are exempt. | `300` |
-| `RATE_LIMIT_BULK_MAX` | Requests per minute per client for `POST /tags/bulk-assign` | `20` |
-| `TRUST_PROXY_HOPS` | How many proxies sit in front of the API (0 to 5). The client address is the one the nearest proxy appended to `X-Forwarded-For`; anything a client writes before it is ignored. `1` on Railway (check it, see below). **Never "trust everything"**: that lets a client choose its own address and bypass the rate limit. The old `TRUST_PROXY` setting is refused at start. | `0` |
-| `ENABLE_DOCS` | `true` or `false`. Serve Swagger UI and the OpenAPI document at `/docs`. | `true` |
-| `POSTGRES_PORT` | Host port for the Docker Postgres | `5432` |
+| Variable               | Purpose                                                                                                                                                                                                                                                                                                                                                                                   | Default (local only)                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `DATABASE_URL`         | Postgres connection string. Required when `NODE_ENV=production`.                                                                                                                                                                                                                                                                                                                          | `postgres://postgres:postgres@localhost:5432/crm` |
+| `TEST_DATABASE_URL`    | Database the tests run against. Tests wipe its tables.                                                                                                                                                                                                                                                                                                                                    | `…/crm_test`                                      |
+| `PORT`                 | HTTP port                                                                                                                                                                                                                                                                                                                                                                                 | `3000`                                            |
+| `CORS_ORIGIN`          | Allowed browser origin(s), comma separated (spaces are ignored). **Required when `NODE_ENV=production`**; CORS is off if unset locally.                                                                                                                                                                                                                                                   | unset                                             |
+| `DATABASE_SSL`         | `true` or `false`. Forces SSL on or off for the database connection.                                                                                                                                                                                                                                                                                                                      | SSL on when `NODE_ENV=production`, off otherwise  |
+| `SEED_ON_START`        | `true` or `false`. Seed demo contacts on start if the table is empty.                                                                                                                                                                                                                                                                                                                     | `true`                                            |
+| `DATABASE_CA_CERT`     | PEM of the database's CA. When set, the TLS certificate is **verified**; without it the connection is encrypted but the certificate is not checked. Literal `\n` is accepted for newlines.                                                                                                                                                                                                | unset                                             |
+| `STATEMENT_TIMEOUT_MS` | Server-side cap on a single request's query. Postgres cancels it, and the API answers 503.                                                                                                                                                                                                                                                                                                | `10000`                                           |
+| `RATE_LIMIT_MAX`       | Requests per minute per client. `/health` and `/docs` are exempt.                                                                                                                                                                                                                                                                                                                         | `300`                                             |
+| `RATE_LIMIT_BULK_MAX`  | Requests per minute per client for `POST /tags/bulk-assign`                                                                                                                                                                                                                                                                                                                               | `20`                                              |
+| `TRUST_PROXY_HOPS`     | How many proxies sit in front of the API (0 to 5). The client address is the one the nearest proxy appended to `X-Forwarded-For`; anything a client writes before it is ignored. `2` on Railway (measured, see the deploy section). **Never "trust everything"**: that lets a client choose its own address and bypass the rate limit. The old `TRUST_PROXY` setting is refused at start. | `0`                                               |
+| `ENABLE_DOCS`          | `true` or `false`. Serve Swagger UI and the OpenAPI document at `/docs`.                                                                                                                                                                                                                                                                                                                  | `true`                                            |
+| `POSTGRES_PORT`        | Host port for the Docker Postgres                                                                                                                                                                                                                                                                                                                                                         | `5432`                                            |
 
 The limiter is in memory, so limits are per instance. It is off in the test suite unless a test turns it on.
 
 ### npm scripts (in `backend/`)
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Run with auto-reload (`tsx watch`) |
-| `npm run build` / `npm start` | Compile to `dist/` / run the compiled server |
-| `npm test` | Run all tests against the real test database |
-| `npm run migrate` | Apply pending migrations |
-| `npm run seed` | Seed 20,000 contacts. Refuses if contacts already exist. |
+| Script                                    | What it does                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run dev`                             | Run with auto-reload (`tsx watch`)                                            |
+| `npm run build` / `npm start`             | Compile to `dist/` / run the compiled server                                  |
+| `npm test`                                | Run all tests against the real test database                                  |
+| `npm run migrate`                         | Apply pending migrations                                                      |
+| `npm run seed`                            | Seed 20,000 contacts. Refuses if contacts already exist.                      |
 | `npm run seed -- --count 1000000 --reset` | Wipe and reseed, for local scale testing. Also takes `--seed N` (default 42). |
-| `npm run lint` / `format` / `typecheck` | Lint, format with Prettier, type-check |
+| `npm run lint` / `format` / `typecheck`   | Lint, format with Prettier, type-check                                        |
 
 ### Project layout
 
@@ -112,14 +121,15 @@ The API deploys to [Railway](https://railway.com) from this repo, with the front
    - **Healthcheck path:** `/health`
 4. **Variables** (service → **Variables**):
 
-   | Variable | Value |
-   | --- | --- |
-   | `DATABASE_URL` | Add a **reference** to the Postgres service's `DATABASE_URL`, i.e. `${{Postgres.DATABASE_URL}}` |
-   | `CORS_ORIGIN` | The Vercel domain, e.g. `https://your-app.vercel.app` (no trailing slash; comma-separate several). **The server refuses to start without it in production.** |
-   | `NODE_ENV` | `production` (turns SSL on for the database connection) |
-   | `TRUST_PROXY_HOPS` | `1`: Railway's edge is one proxy in front of the API, so each visitor gets their own rate limit instead of everyone sharing the proxy's address. **Check it after the first deploy**, see below. |
+   | Variable           | Value                                                                                                                                                                                                                                                                                    |
+   | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | `DATABASE_URL`     | Add a **reference** to the Postgres service's `DATABASE_URL`, i.e. `${{Postgres.DATABASE_URL}}`                                                                                                                                                                                          |
+   | `CORS_ORIGIN`      | The Vercel domain, e.g. `https://your-app.vercel.app` (no trailing slash; comma-separate several). **The server refuses to start without it in production.**                                                                                                                             |
+   | `NODE_ENV`         | `production` (turns SSL on for the database connection)                                                                                                                                                                                                                                  |
+   | `TRUST_PROXY_HOPS` | `2`. Measured on Railway: the app sees the request through two proxies (`X-Forwarded-For: <visitor>, <Railway edge>`, with the connection itself coming from a third Railway address), so two hops get you to the visitor. With `1` every visitor would be counted as a Railway address. |
 
    `PORT` is set by Railway itself, so don't add it. If the logs show an SSL or connection error, set `DATABASE_SSL` to `true` or `false` to force it. By default the connection is encrypted but the database's certificate is not verified (`rejectUnauthorized: false`), because managed Postgres commonly uses a self-signed certificate and the Railway reference URL uses its private network. To verify it, paste the CA certificate into `DATABASE_CA_CERT`; the server logs a warning at start while verification is off.
+
 5. **Expose it:** service → **Settings** → **Networking** → **Generate Domain**.
 6. **Deploy** (Railway also redeploys on every push) and open **Deployments → View logs**. Expect `startup: applied 001_init, 002_activity_actor; seeded demo contacts`, then `Server listening`.
 7. **Check it on the live URL:**
@@ -130,26 +140,69 @@ The API deploys to [Railway](https://railway.com) from this repo, with the front
    curl "https://<your-domain>/contacts?q=patel&limit=5"
    # items, and "total": "10000+" with "capped": true while all 20,000 rows are in
    ```
-8. **Connect the frontend:** set the live API URL as the API base URL in Vercel, then set `CORS_ORIGIN` here to the final Vercel domain.
 
-**Check the proxy hop count once, after deploying.** The first request that carries an `X-Forwarded-For` header (health probes do not) logs one line: `client address resolved from X-Forwarded-For`, with `ip`, `xForwardedFor` and `hops`. Open it in the Railway logs and make sure `ip` is **your own public address** (use any "what is my IP" page). If `ip` is a Railway-internal address, the hop count is too low (raise it); if it is a value you can change by sending your own `X-Forwarded-For` header, it is too high (lower it). I could not verify Railway's proxy chain from here, so this check is part of deploying.
+8. **Connect the frontend:** deploy it on Vercel with this API's URL as `VITE_API_URL` (see [Deploying to Vercel](#deploying-to-vercel-manual-via-dashboard)), then set `CORS_ORIGIN` here to the final Vercel domain.
 
-**Live API:** _add the URL here after deploying_
+**Check the proxy hop count once, after deploying.** The first request that carries an `X-Forwarded-For` header (health probes do not) logs one line: `client address resolved from X-Forwarded-For`, with `ip`, `xForwardedFor` and `hops`. Open it in the Railway logs and make sure `ip` is **your own public address** (use any "what is my IP" page). If `ip` is a Railway-internal address, the hop count is too low (raise it); if it is a value you can change by sending your own `X-Forwarded-For` header, it is too high (lower it). On the first real deploy this showed `ip` equal to the visitor's address only with `TRUST_PROXY_HOPS=2`; with `1` it showed a Railway address.
+
+**Live API:** https://assign-production-de66916a.up.railway.app (OpenAPI document at [`/docs/json`](https://assign-production-de66916a.up.railway.app/docs/json), Swagger UI at [`/docs`](https://assign-production-de66916a.up.railway.app/docs))
 
 **If something goes wrong**
 
-| Symptom | Likely cause |
-| --- | --- |
-| Build deploys the wrong thing or fails to find `package.json` | Root Directory is not `backend` |
-| Boots, then `DATABASE_URL is required` | The variable is missing or the reference is misspelled |
-| SSL or "connection terminated" errors | Try `DATABASE_SSL=true` (or `false`) |
-| Browser CORS errors | `CORS_ORIGIN` differs from the page's origin (trailing slash, `http` vs `https`). Spaces after commas are fine. |
-| `CORS_ORIGIN is required` in the logs | Set it; production refuses to start without it |
-| 429 `RATE_LIMITED` for everyone at once | `TRUST_PROXY_HOPS` is 0, so all visitors share the proxy's address |
-| Rate limit does not seem to apply per visitor | `TRUST_PROXY_HOPS` is too high, so the address a visitor wrote is believed (see the check below) |
-| Contacts list is empty | `SEED_ON_START=false` is set, or the table already had rows from earlier |
+| Symptom                                                       | Likely cause                                                                                                    |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Build deploys the wrong thing or fails to find `package.json` | Root Directory is not `backend`                                                                                 |
+| Boots, then `DATABASE_URL is required`                        | The variable is missing or the reference is misspelled                                                          |
+| SSL or "connection terminated" errors                         | Try `DATABASE_SSL=true` (or `false`)                                                                            |
+| Browser CORS errors                                           | `CORS_ORIGIN` differs from the page's origin (trailing slash, `http` vs `https`). Spaces after commas are fine. |
+| `CORS_ORIGIN is required` in the logs                         | Set it; production refuses to start without it                                                                  |
+| 429 `RATE_LIMITED` for everyone at once                       | `TRUST_PROXY_HOPS` is 0, so all visitors share the proxy's address                                              |
+| Rate limit does not seem to apply per visitor                 | `TRUST_PROXY_HOPS` is too high, so the address a visitor wrote is believed (see the check below)                |
+| Contacts list is empty                                        | `SEED_ON_START=false` is set, or the table already had rows from earlier                                        |
 
 The SSL behaviour could only be tested locally against a database without SSL, so it is unverified against Railway's Postgres until the first deploy.
+
+---
+
+## Deploying to Vercel (manual, via dashboard)
+
+The web app deploys to [Vercel](https://vercel.com) from this repo. Like the API, this is done by hand in the dashboard: nothing in the repo deploys for you, and no CLI is needed.
+
+The build needs one setting, `VITE_API_URL`, the API's base URL. Everything else is in [`frontend/vercel.json`](frontend/vercel.json):
+
+| Setting in `vercel.json`                  | Why                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `installCommand: npm ci`                  | Installs the whole `frontend/` workspace (`app` needs `@crm/ui` from it) from the lockfile             |
+| `buildCommand: npm run build`             | Type-checks, then builds `app`                                                                         |
+| `outputDirectory: app/dist`               | Where the build lands (not Vercel's default `dist`, because the app is a workspace inside `frontend/`) |
+| Rewrite of every path to `/index.html`    | It's a single-page app: a refresh or a shared link on `/contacts/<id>` must load the app, not a 404    |
+| `Cache-Control: immutable` on `/assets/*` | Built files have content hashes in their names, so browsers can keep them for good                     |
+
+1. **Import the repo:** at vercel.com, **Add New** → **Project** → import this GitHub repo.
+2. **Root Directory:** `frontend` (click **Edit** next to it). Not `frontend/app`: the install has to see the whole workspace. Leave **Framework Preset**, **Build Command**, **Output Directory** and **Install Command** on their defaults; `vercel.json` sets them.
+3. **Environment Variables:** add
+
+   | Variable       | Value                                                                   |
+   | -------------- | ----------------------------------------------------------------------- |
+   | `VITE_API_URL` | `https://assign-production-de66916a.up.railway.app` (no trailing slash) |
+
+   It is read when the app is **built**, so after changing it, redeploy (**Deployments** → ⋯ → **Redeploy**).
+
+4. **Deploy.** The build log ends with the list of chunks; the app opens on the contact list.
+5. **Allow the site on the API:** in Railway, set the backend's `CORS_ORIGIN` to the Vercel domain, e.g. `https://your-app.vercel.app` (no trailing slash). Railway redeploys the API. Until then the app shows "Couldn't load contacts", because the browser blocks the requests. Preview deployments get their own domains; add them comma-separated if you want those to work too.
+6. **Check it:** the list loads with the 10,000+ badge; open a contact, then refresh the page (it should stay on the contact, not 404); run [Try the conflict scenario](#try-the-conflict-scenario) with two tabs.
+
+**Live app:** _add the Vercel URL here after deploying_
+
+**If something goes wrong**
+
+| Symptom                                                              | Likely cause                                                                                  |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Build fails with `Cannot find module '@crm/ui'` or no `package.json` | Root Directory is not `frontend`                                                              |
+| Blank page, console says `VITE_API_URL is not set`                   | The variable is missing (or was added after the build: redeploy)                              |
+| "Couldn't load contacts", console shows a CORS error                 | `CORS_ORIGIN` on Railway doesn't match the Vercel domain exactly (`https`, no trailing slash) |
+| 404 when refreshing `/contacts/<id>`                                 | `vercel.json` isn't being used: check the Root Directory                                      |
+| The app calls the wrong API                                          | `VITE_API_URL` changed without a redeploy                                                     |
 
 ---
 
@@ -164,6 +217,14 @@ The SSL behaviour could only be tested locally against a database without SSL, s
 - **Vitest** for tests, against a real Postgres database (no mocks of the database)
 - ESLint + Prettier
 
+Frontend (details in [`frontend/README.md`](frontend/README.md)):
+
+- **React 18 + TypeScript** on **Vite**, npm workspaces (`app`, `@crm/ui` components)
+- **Redux Toolkit / RTK Query** for server data; search, filters, sort and page live in the URL (**React Router 7**)
+- **TanStack Table** under the `Table` component; plain CSS modules for styles; **Storybook** for the components
+- The detail page and the edit form are lazy-loaded, so the list loads without the phone-number library
+- **Playwright** end-to-end tests against the real API; ESLint + Prettier
+
 ---
 
 ## API
@@ -176,40 +237,55 @@ No authentication: every endpoint is public (see [Known issues](#known-issues)).
 
 Optional header `X-Actor: <display name>` labels who made a change (a demo "acting as" name, see [Try the conflict scenario](#try-the-conflict-scenario)). It is trimmed and must be 1 to 50 characters. If it is missing or invalid the request still works and is recorded as `Anonymous`.
 
-| Method and path | Purpose |
-| --- | --- |
-| `GET /health` | 200 when Postgres answers, 503 otherwise |
-| `GET /contacts` | List with search, filters, sorting and pagination |
-| `GET /contacts/:id` | One contact with its tags and `version` |
-| `PATCH /contacts/:id` | Update fields. Requires the `version` you started from. |
-| `GET /contacts/:id/activities?limit=20` | Recent activity, newest first (limit 1 to 100) |
-| `GET /tags?limit=500` | Tags sorted by name, at most `limit` (1 to 1000, default 500). `hasMore` says if there are more. |
-| `POST /contacts/:id/tags` | Add a tag by `tagId` or by `name` (created if new) |
-| `DELETE /contacts/:id/tags/:tagId` | Remove a tag from a contact |
-| `POST /tags/bulk-assign` | Apply one tag to up to 1,000 contacts |
+| Method and path                         | Purpose                                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `GET /health`                           | 200 when Postgres answers, 503 otherwise                                                         |
+| `GET /contacts`                         | List with search, filters, sorting and pagination                                                |
+| `GET /contacts/:id`                     | One contact with its tags and `version`                                                          |
+| `PATCH /contacts/:id`                   | Update fields. Requires the `version` you started from.                                          |
+| `GET /contacts/:id/activities?limit=20` | Recent activity, newest first (limit 1 to 100)                                                   |
+| `GET /tags?limit=500`                   | Tags sorted by name, at most `limit` (1 to 1000, default 500). `hasMore` says if there are more. |
+| `POST /contacts/:id/tags`               | Add a tag by `tagId` or by `name` (created if new)                                               |
+| `DELETE /contacts/:id/tags/:tagId`      | Remove a tag from a contact                                                                      |
+| `POST /tags/bulk-assign`                | Apply one tag to up to 1,000 contacts                                                            |
 
 ### `GET /contacts`
 
-| Parameter | Meaning |
-| --- | --- |
-| `q` | Search first name, last name, email and phone. Case-insensitive substring. Several words must all match, so `q=ada lovelace` finds the full name. At most 5 words (more is a 400). |
-| `tag` | Only contacts with this tag (a tag **id**) |
-| `company` | Exact company name |
-| `createdFrom`, `createdTo` | Inclusive date range. A bare date (`2025-06-30`) as `createdTo` covers that whole day. |
-| `sort`, `order` | `sort=name` (last name, first name) or `createdAt`; `order=asc` or `desc`. Defaults: `createdAt` descending, `name` ascending. |
-| `limit` | 1 to 100, default 20 |
-| `cursor` | Opaque cursor from `nextCursor` or `prevCursor` |
-| `page` | Jump to a page number. Only allowed while there are 10,000 or fewer matches. Not combinable with `cursor`. |
+| Parameter                  | Meaning                                                                                                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`                        | Search first name, last name, email and phone. Case-insensitive substring. Several words must all match, so `q=ada lovelace` finds the full name. At most 5 words (more is a 400). |
+| `tag`                      | Only contacts with this tag (a tag **id**)                                                                                                                                         |
+| `company`                  | Exact company name                                                                                                                                                                 |
+| `createdFrom`, `createdTo` | Inclusive date range. A bare date (`2025-06-30`) as `createdTo` covers that whole day.                                                                                             |
+| `sort`, `order`            | `sort=name` (last name, first name) or `createdAt`; `order=asc` or `desc`. Defaults: `createdAt` descending, `name` ascending.                                                     |
+| `limit`                    | 1 to 100, default 20                                                                                                                                                               |
+| `cursor`                   | Opaque cursor from `nextCursor` or `prevCursor`                                                                                                                                    |
+| `page`                     | Jump to a page number. Only allowed while there are 10,000 or fewer matches. Not combinable with `cursor`.                                                                         |
 
 Response:
 
 ```json
 {
-  "items": [ { "id": "…", "firstName": "Ada", "lastName": "Lovelace", "email": "ada@x.com",
-               "phone": null, "company": "Analytical", "version": 3,
-               "createdAt": "…", "updatedAt": "…", "tags": [ { "id": "…", "name": "VIP" } ] } ],
-  "nextCursor": "…", "prevCursor": null,
-  "total": 338, "totalPages": 17, "capped": false, "page": 1
+  "items": [
+    {
+      "id": "…",
+      "firstName": "Ada",
+      "lastName": "Lovelace",
+      "email": "ada@x.com",
+      "phone": null,
+      "company": "Analytical",
+      "version": 3,
+      "createdAt": "…",
+      "updatedAt": "…",
+      "tags": [{ "id": "…", "name": "VIP" }]
+    }
+  ],
+  "nextCursor": "…",
+  "prevCursor": null,
+  "total": 338,
+  "totalPages": 17,
+  "capped": false,
+  "page": 1
 }
 ```
 
@@ -218,7 +294,12 @@ Past 10,000 matches: `"total": "10000+"`, `"capped": true`, `"totalPages": null`
 ### `PATCH /contacts/:id`
 
 ```json
-{ "version": 3, "firstName": "Augusta", "email": "AUGUSTA@Example.com", "company": "" }
+{
+  "version": 3,
+  "firstName": "Augusta",
+  "email": "AUGUSTA@Example.com",
+  "company": ""
+}
 ```
 
 - Only `firstName`, `lastName`, `email`, `phone`, `company` and `version` are accepted. Anything else is rejected.
@@ -240,23 +321,23 @@ Every error uses one shape:
 { "error": { "code": "VERSION_CONFLICT", "message": "…", "details": null } }
 ```
 
-| Status | Codes | When |
-| --- | --- | --- |
-| 400 | `BAD_REQUEST`, `PAGE_NOT_ALLOWED` | Bad JSON, malformed id, bad query parameter, bad cursor (including an impossible date inside it), a NUL character in a search or filter, `page` used past the 10,000 cap |
-| 404 | `NOT_FOUND` | Unknown contact, tag or route; removing a tag the contact does not have |
-| 409 | `VERSION_CONFLICT`, `EMAIL_TAKEN` | Stale edit (the body carries `details.latest`, the current contact); email already used |
-| 422 | `VALIDATION_ERROR` | Body field validation (including a NUL character in any text field). `details` lists `{ path, message }` per field. |
-| 429 | `RATE_LIMITED` | Too many requests from one client (`Retry-After` says when to retry) |
-| 500 | `INTERNAL_ERROR` | Unexpected. The real error is logged, nothing internal is returned except `details.requestId`, which matches the server log line. |
-| 503 | `TEMPORARILY_UNAVAILABLE` | The database was busy: a deadlock or no free connection within 5 s. Safe to retry (`Retry-After: 1`). `details.requestId` as for 500. |
-| 503 | `QUERY_TIMEOUT` | A query ran past `STATEMENT_TIMEOUT_MS` and was cancelled. The cause is almost always an expensive search, so `Retry-After` is 10 and the message asks to narrow it. |
+| Status | Codes                             | When                                                                                                                                                                     |
+| ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 400    | `BAD_REQUEST`, `PAGE_NOT_ALLOWED` | Bad JSON, malformed id, bad query parameter, bad cursor (including an impossible date inside it), a NUL character in a search or filter, `page` used past the 10,000 cap |
+| 404    | `NOT_FOUND`                       | Unknown contact, tag or route; removing a tag the contact does not have                                                                                                  |
+| 409    | `VERSION_CONFLICT`, `EMAIL_TAKEN` | Stale edit (the body carries `details.latest`, the current contact); email already used                                                                                  |
+| 422    | `VALIDATION_ERROR`                | Body field validation (including a NUL character in any text field). `details` lists `{ path, message }` per field.                                                      |
+| 429    | `RATE_LIMITED`                    | Too many requests from one client (`Retry-After` says when to retry)                                                                                                     |
+| 500    | `INTERNAL_ERROR`                  | Unexpected. The real error is logged, nothing internal is returned except `details.requestId`, which matches the server log line.                                        |
+| 503    | `TEMPORARILY_UNAVAILABLE`         | The database was busy: a deadlock or no free connection within 5 s. Safe to retry (`Retry-After: 1`). `details.requestId` as for 500.                                    |
+| 503    | `QUERY_TIMEOUT`                   | A query ran past `STATEMENT_TIMEOUT_MS` and was cancelled. The cause is almost always an expensive search, so `Retry-After` is 10 and the message asks to narrow it.     |
 
 ### Activity events
 
-| Type | `details` |
-| --- | --- |
-| `CONTACT_UPDATED` | `{ "changes": { "firstName": { "old": "Ada", "new": "Augusta" } } }`, only fields that actually changed |
-| `TAG_ADDED`, `TAG_REMOVED` | `{ "tagId": "…", "tagName": "VIP" }` |
+| Type                       | `details`                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `CONTACT_UPDATED`          | `{ "changes": { "firstName": { "old": "Ada", "new": "Augusta" } } }`, only fields that actually changed |
+| `TAG_ADDED`, `TAG_REMOVED` | `{ "tagId": "…", "tagName": "VIP" }`                                                                    |
 
 The tag name is stored in the event, so history still reads correctly after a tag is renamed.
 
@@ -326,17 +407,17 @@ erDiagram
 
 **Constraints and indexes** (in `backend/src/db/migrations/001_init.ts`; `002_activity_actor.ts` adds the nullable `actor` column)
 
-| Table | Constraint or index | Why |
-| --- | --- | --- |
-| `contacts` | Unique on `lower(email)` where email is not null | Case-insensitive unique email, and many contacts may have none |
-| `contacts` | GIN trigram on `first_name`, `last_name`, `email`, `phone` | Substring search |
-| `contacts` | `(created_at, id)` and `(last_name, first_name, id)` | Sorting and keyset pagination |
-| `contacts` | `company` | Company filter |
-| `contacts` | Checks: names not blank, `version >= 1` | Backstop for API validation |
-| `tags` | Unique on `lower(name)` | Case-insensitive unique tag names |
-| `contact_tags` | Primary key `(contact_id, tag_id)`, both foreign keys `ON DELETE CASCADE` | Blocks duplicate tagging |
-| `contact_tags` | Index `(tag_id, contact_id)` | Filter contacts by tag |
-| `contact_activities` | `type` check, index `(contact_id, created_at DESC)` | Recent activity per contact |
+| Table                | Constraint or index                                                       | Why                                                            |
+| -------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `contacts`           | Unique on `lower(email)` where email is not null                          | Case-insensitive unique email, and many contacts may have none |
+| `contacts`           | GIN trigram on `first_name`, `last_name`, `email`, `phone`                | Substring search                                               |
+| `contacts`           | `(created_at, id)` and `(last_name, first_name, id)`                      | Sorting and keyset pagination                                  |
+| `contacts`           | `company`                                                                 | Company filter                                                 |
+| `contacts`           | Checks: names not blank, `version >= 1`                                   | Backstop for API validation                                    |
+| `tags`               | Unique on `lower(name)`                                                   | Case-insensitive unique tag names                              |
+| `contact_tags`       | Primary key `(contact_id, tag_id)`, both foreign keys `ON DELETE CASCADE` | Blocks duplicate tagging                                       |
+| `contact_tags`       | Index `(tag_id, contact_id)`                                              | Filter contacts by tag                                         |
+| `contact_activities` | `type` check, index `(contact_id, created_at DESC)`                       | Recent activity per contact                                    |
 
 ---
 
@@ -377,7 +458,7 @@ Observed on the default 20,000-row seed, on a laptop: list, search, filter and c
 
 ### Scale test at 1,000,000 contacts
 
-*Not measured yet.* To produce the numbers locally:
+_Not measured yet._ To produce the numbers locally:
 
 ```bash
 cd backend
@@ -396,28 +477,47 @@ cd backend && npm test      # needs Postgres running (docker compose up -d)
 
 319 tests across 20 files, in the order of risk the spec lists:
 
-| Area | What is checked |
-| --- | --- |
-| Optimistic locking | A stale update gets 409 and stored data and history are untouched; two simultaneous edits, exactly one wins |
-| Email uniqueness | Duplicates rejected including case and whitespace variants; nothing partially saved |
-| Bulk assign | Idempotent; correct activity per newly tagged contact; unknown ids counted; rolls back completely when a step fails (a database trigger forces one); constant statement count; no deadlocks between overlapping bulk requests |
-| Pagination | No gaps or duplicates walking Next and Previous, for both sorts and both orders, with heavy ties and microsecond timestamps; the cap at exactly 10,000 and at 10,050 |
-| Search and filters | Fields, case-insensitivity, multi-word queries (and the 5-word cap), literal `%` and `_`, tag, company, date ranges, combinations |
-| Validation | Status and shape of 400, 404, 409 and 422 responses; unknown fields; tampered cursors: bad shape, forged keys, NUL characters and impossible dates (Feb 30, month 13, hour 24, leap years) are all 400s, never 500s |
-| Bad input | A NUL character in every text input (PATCH fields, search, company filter, tag names single and bulk, cursor keys) is a client error and writes nothing; the database-side backstop turns any value Postgres rejects into a 400 |
-| Tags | Add and remove leave `version` alone, so an edit started earlier still saves; the tag list is bounded and says when it is cut |
-| Tag races | Single add, add by new name and remove are each raced against bulk assign on the same contact and tag, 50 rounds each: no 500s, exactly one link and one activity |
-| CORS | A preflight for every method and path the frontend sends lists that method and allows `X-Actor`; origins with spaces; unlisted origins get nothing; production refuses to start without `CORS_ORIGIN` |
-| Resilience | An idle connection killed by the server does not crash the process; a full pool fails fast (`/health` answers 503); a runaway statement is cancelled; the startup lock times out; rate limits, including per client behind a proxy |
-| Rate limit | A client writing a different `X-Forwarded-For` on every request still hits the limit; real clients behind the proxy keep separate budgets; with no proxy the header is ignored; `/health?x=1` is exempt |
-| Timeouts | A statement cut off by the database, and one the client gave up on, are both a documented 503 `QUERY_TIMEOUT` with `Retry-After: 10` and a request id |
-| Ids and errors | An invalid id is a 400 on every endpoint and field; 500 and 503 bodies carry a request id and nothing internal |
-| Acting as | `X-Actor` is stored on an update, a tag add, a tag remove and every row of a bulk assign; trimmed; missing, blank or over 50 characters becomes `Anonymous` without rejecting the request; the 409 response is unchanged; CORS preflight allows the header |
-| API docs | The OpenAPI document lists exactly the endpoints the API has; real responses (success and each error status) match the documented schemas and status codes key for key; the docs did not change error shapes |
-| Startup | Seeds only an empty table; a restart adds nothing and does not overwrite an edited contact; two instances starting together seed exactly once; the seed and SSL switches parse strictly |
-| Schema and seed | Constraints, indexes and cascades; seed is repeatable, varied and never overwrites existing data |
+| Area               | What is checked                                                                                                                                                                                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optimistic locking | A stale update gets 409 and stored data and history are untouched; two simultaneous edits, exactly one wins                                                                                                                                                |
+| Email uniqueness   | Duplicates rejected including case and whitespace variants; nothing partially saved                                                                                                                                                                        |
+| Bulk assign        | Idempotent; correct activity per newly tagged contact; unknown ids counted; rolls back completely when a step fails (a database trigger forces one); constant statement count; no deadlocks between overlapping bulk requests                              |
+| Pagination         | No gaps or duplicates walking Next and Previous, for both sorts and both orders, with heavy ties and microsecond timestamps; the cap at exactly 10,000 and at 10,050                                                                                       |
+| Search and filters | Fields, case-insensitivity, multi-word queries (and the 5-word cap), literal `%` and `_`, tag, company, date ranges, combinations                                                                                                                          |
+| Validation         | Status and shape of 400, 404, 409 and 422 responses; unknown fields; tampered cursors: bad shape, forged keys, NUL characters and impossible dates (Feb 30, month 13, hour 24, leap years) are all 400s, never 500s                                        |
+| Bad input          | A NUL character in every text input (PATCH fields, search, company filter, tag names single and bulk, cursor keys) is a client error and writes nothing; the database-side backstop turns any value Postgres rejects into a 400                            |
+| Tags               | Add and remove leave `version` alone, so an edit started earlier still saves; the tag list is bounded and says when it is cut                                                                                                                              |
+| Tag races          | Single add, add by new name and remove are each raced against bulk assign on the same contact and tag, 50 rounds each: no 500s, exactly one link and one activity                                                                                          |
+| CORS               | A preflight for every method and path the frontend sends lists that method and allows `X-Actor`; origins with spaces; unlisted origins get nothing; production refuses to start without `CORS_ORIGIN`                                                      |
+| Resilience         | An idle connection killed by the server does not crash the process; a full pool fails fast (`/health` answers 503); a runaway statement is cancelled; the startup lock times out; rate limits, including per client behind a proxy                         |
+| Rate limit         | A client writing a different `X-Forwarded-For` on every request still hits the limit; real clients behind the proxy keep separate budgets; with no proxy the header is ignored; `/health?x=1` is exempt                                                    |
+| Timeouts           | A statement cut off by the database, and one the client gave up on, are both a documented 503 `QUERY_TIMEOUT` with `Retry-After: 10` and a request id                                                                                                      |
+| Ids and errors     | An invalid id is a 400 on every endpoint and field; 500 and 503 bodies carry a request id and nothing internal                                                                                                                                             |
+| Acting as          | `X-Actor` is stored on an update, a tag add, a tag remove and every row of a bulk assign; trimmed; missing, blank or over 50 characters becomes `Anonymous` without rejecting the request; the 409 response is unchanged; CORS preflight allows the header |
+| API docs           | The OpenAPI document lists exactly the endpoints the API has; real responses (success and each error status) match the documented schemas and status codes key for key; the docs did not change error shapes                                               |
+| Startup            | Seeds only an empty table; a restart adds nothing and does not overwrite an edited contact; two instances starting together seed exactly once; the seed and SSL switches parse strictly                                                                    |
+| Schema and seed    | Constraints, indexes and cascades; seed is repeatable, varied and never overwrites existing data                                                                                                                                                           |
 
 While building, each group of tests was also checked by deliberately breaking the code under test (for example removing the version check, or the `ON CONFLICT`) and confirming tests fail. A few deliberate breaks survived only because the code has redundant safeguards (for example the version is checked twice), so removing one layer changes nothing observable.
+
+### Frontend end-to-end tests
+
+```bash
+cd frontend && npm run test:e2e          # headless
+cd frontend && npm run test:e2e:headed   # watch them run in a browser window, one at a time
+```
+
+Playwright drives the real app against the real API, so the docker-compose Postgres has to be running. Each run recreates a separate `crm_e2e` database (the dev data is never touched), starts the API on port 3100 with the usual 20,000 seeded contacts, and serves the app on port 5174, so a running `npm run dev` isn't disturbed. The first time, install the browser with `npx playwright install chromium` (from `frontend/app`). Details and the other modes (`test:e2e:ui`, the HTML report) are in [`frontend/README.md`](frontend/README.md#end-to-end-tests).
+
+24 tests in 5 files, following the spec's list plus layout regressions:
+
+| Area               | What is checked                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| List and URL state | Opens on the list; search goes into the URL (debounced) and survives a reload; sort, page size and page survive a reload; above 10,000 matches page numbers are refused and Next pages by cursor; no matches offers Clear filters; an unknown contact shows "not found"; an impossible date and a reversed date range in the filters show a toast                                             |
+| Editing            | Only the changed field plus `version` is sent, with `X-Actor` from the tab's acting-as choice, and the activity shows who changed what; Save disabled until something changes; Cancel drops edits; client checks under the fields; `EMAIL_TAKEN` and a 422 shown under the field; a failed save keeps the edits and shows a toast; the phone country picker searches by name and calling code |
+| Conflicts          | Two tabs as Janardhan and Heer, a real 409: Merge both when the fields differ, no Merge both when they overlap, Reload latest, Reapply my changes                                                                                                                                                                                                                                             |
+| Tags               | Bulk: select three rows, create a tag, see the result message and the selection cleared; add and remove a tag on one contact                                                                                                                                                                                                                                                                  |
+| Layout             | A long activity history scrolls inside a fixed-height box (keyboard too); a long unbroken company wraps instead of widening the page; the detail page is one column on a phone; the bulk tag dialog's text and button line up under the title                                                                                                                                                 |
 
 ---
 
@@ -426,18 +526,22 @@ While building, each group of tests was also checked by deliberately breaking th
 This shows two people editing the same contact at once (User A and User B in the brief). It needs the frontend, which sends `X-Actor` for you; with only the API, use the `curl` calls below.
 
 1. Open the app in two browser tabs and open the same contact in both.
-2. In the first tab pick **Bob** as the acting user, in the second pick **Alice**.
-3. In Bob's tab change a field (say the company) and save. It succeeds.
-4. In Alice's tab change a field and save. The API answers **409 `VERSION_CONFLICT`** with the latest contact, and the dialog shows what Bob changed next to Alice's edits.
-5. Open the contact's activity: Bob's change is recorded with `actor: "Bob"`.
+2. In the first tab pick **Heer** as the acting user, in the second pick **Janardhan**.
+3. In Heer's tab change a field (say the company) and save. It succeeds.
+4. In Janardhan's tab change a field and save. The API answers **409 `VERSION_CONFLICT`** with the latest contact, and the dialog shows the latest saved values next to Janardhan's edits, marks the fields Heer changed, and says "Last changed by Heer, … ago".
+5. Pick one:
+   - **Merge both** (offered only when Janardhan and Heer changed different fields): saves Janardhan's fields on top of Heer's version.
+   - **Reapply my changes**: loads Heer's version and keeps Janardhan's edits in the form to review and save again.
+   - **Reload latest**: drops Janardhan's edits.
+6. The contact's activity shows each change with its actor ("Heer changed company from … to …").
 
 With `curl` (replace `<id>`; `version` is the contact's current version):
 
 ```bash
-curl -X PATCH localhost:3000/contacts/<id> -H 'Content-Type: application/json' -H 'X-Actor: Bob' \
-  -d '{"version":1,"company":"Bob Co"}'     # 200, version becomes 2
-curl -X PATCH localhost:3000/contacts/<id> -H 'Content-Type: application/json' -H 'X-Actor: Alice' \
-  -d '{"version":1,"company":"Alice Co"}'   # 409 VERSION_CONFLICT, details.latest has Bob's change
+curl -X PATCH localhost:3000/contacts/<id> -H 'Content-Type: application/json' -H 'X-Actor: Heer' \
+  -d '{"version":1,"company":"Heer Co"}'     # 200, version becomes 2
+curl -X PATCH localhost:3000/contacts/<id> -H 'Content-Type: application/json' -H 'X-Actor: Janardhan' \
+  -d '{"version":1,"company":"Janardhan Co"}'   # 409 VERSION_CONFLICT, details.latest has Heer's change
 ```
 
 ---
@@ -455,7 +559,7 @@ curl -X PATCH localhost:3000/contacts/<id> -H 'Content-Type: application/json' -
 - **The count query runs on every list request** (bounded by the cap, but not free). Caching it is in the scale notes.
 - **`/docs` is public in production.** It shows the whole API surface, which is fine for a demo; set `ENABLE_DOCS=false` to hide it.
 - **The forwarded address is believed from whoever connects.** With `TRUST_PROXY_HOPS` above 0 the API trusts `X-Forwarded-For` as if a proxy wrote it, so the API must only be reachable through that proxy (as on Railway, where the public URL goes through its edge). Someone who could connect to the service directly could write their own address and sidestep the rate limit.
-- **Railway's proxy chain is unverified.** `TRUST_PROXY_HOPS=1` is the expected value; the deploy section says how to check it.
+- **Railway's proxy chain can change.** `TRUST_PROXY_HOPS=2` was measured on a live deploy (the resolved address matched the visitor's real one, and a client-written `X-Forwarded-For` was replaced by Railway). If Railway changes its edge, re-run the check described in the deploy section.
 - **The rate limiter is basic.** It is in memory (so per instance, and reset on restart), counts by client address, and does not count requests for unknown routes. It slows down scripts; it is not a substitute for authentication. A shared store (Redis) would be needed with several instances.
 - **Tags are created by naming them, by anyone.** The list is capped (`limit`, default 500, with `hasMore`) and writes are rate limited, but a tag picker over thousands of tags would need search or pagination on top of this.
 - **Database certificate is not verified by default.** Set `DATABASE_CA_CERT` to verify it. Not testable against Railway's real database from here.
@@ -480,5 +584,5 @@ What would change to serve millions of contacts per account and many users:
 ## AI usage
 
 - **Tool:** Claude (Claude Code).
-- **What it was used for:** design discussion, writing the spec in `docs/backend-spec.md`, scaffolding, and implementing the backend task by task, with tests. Each task was built, run against the test suite, and committed only after Manish Singh approved it.
+- **What it was used for:** design discussion, writing the specs in `docs/backend-spec.md` and `docs/frontend-spec.md`, scaffolding, and implementing the backend and the frontend task by task, with tests. Each task was built, run against the test suite, and committed only after Manish Singh approved it.
 - **A suggestion that was changed:** Claude proposed cursor-only paging with no total count. Manish changed it to a capped count with page numbers, because the UI needs "page 3 of 42". That is why the list endpoint returns an exact `total` up to 10,000 and supports `page` under the cap.

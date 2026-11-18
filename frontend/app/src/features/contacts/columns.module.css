@@ -1,0 +1,9 @@
+/* A contact's name in the table: plain text weight 500, underlined only on hover (shadcn tables) */
+.nameLink {
+  font-weight: var(--hl-font-weight-medium, 500);
+  text-decoration-color: transparent;
+}
+
+.nameLink:hover {
+  text-decoration-color: currentColor;
+}
