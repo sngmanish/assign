@@ -192,7 +192,7 @@ The build needs one setting, `VITE_API_URL`, the API's base URL. Everything else
 5. **Allow the site on the API:** in Railway, set the backend's `CORS_ORIGIN` to the Vercel domain, e.g. `https://your-app.vercel.app` (no trailing slash). Railway redeploys the API. Until then the app shows "Couldn't load contacts", because the browser blocks the requests. Preview deployments get their own domains; add them comma-separated if you want those to work too.
 6. **Check it:** the list loads with the 10,000+ badge; open a contact, then refresh the page (it should stay on the contact, not 404); run [Try the conflict scenario](#try-the-conflict-scenario) with two tabs.
 
-**Live app:** _add the Vercel URL here after deploying_
+**Live app:** https://crm-contact-workspace-hazel.vercel.app
 
 **If something goes wrong**
 
