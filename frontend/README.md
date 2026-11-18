@@ -85,9 +85,8 @@ small: the contact list and React/Redux/Router load up front; the detail page an
 separate chunks. The edit form carries `google-libphonenumber` (about 150 kB gzipped), so it is only
 fetched when someone clicks **Edit**; hovering or focusing Edit starts the download early.
 
-Deploying is manual, through the Vercel dashboard: Root Directory `frontend`, one environment
-variable `VITE_API_URL`. Step by step in the root README,
-[Deploying to Vercel](../README.md#deploying-to-vercel-manual-via-dashboard). `vercel.json` holds the
+Vercel deploys it with Root Directory `frontend` and one environment variable, `VITE_API_URL`
+(details in the root README's [Deploy](../README.md#deploy) section). `vercel.json` holds the
 install and build commands, the output directory (`app/dist`) and the SPA rewrite.
 
 ## How the pieces fit

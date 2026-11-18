@@ -163,4 +163,4 @@ Playwright end-to-end tests in `app/e2e`, against the real API and a throwaway `
 7. Loading, empty and error states throughout. **Done**
 8. Acting-as picker and the three-way ConflictDialog. **Done**
 9. Tests (Playwright, end to end). **Done**
-10. Prepare for Vercel: `VITE_API_URL` is the only build setting, `frontend/vercel.json` holds the build and the SPA rewrite, and the README has "Deploying to Vercel (manual, via dashboard)". Manish deploys by hand in the dashboard; Claude Code never uses the Vercel CLI. **Done**
+10. Prepare for Vercel: `VITE_API_URL` is the only build setting, `frontend/vercel.json` holds the build and the SPA rewrite, and the README's "Deploy" section covers Vercel. Manish deploys by hand in the dashboard; Claude Code never uses the Vercel CLI. **Done**
