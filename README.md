@@ -141,7 +141,7 @@ An exact `count(*)` and deep `OFFSET` both scan rows in proportion to the table,
 ## Tests
 
 - **Backend** (`cd backend && npm test`, needs Postgres): 319 tests over optimistic locking, email uniqueness, bulk assign (idempotency, rollback, constant query count), pagination with ties, search and filters, validation and error shapes, tag races against bulk assign, CORS, rate limiting behind a proxy, timeouts, startup seeding and the OpenAPI document matching real responses.
-- **Frontend** (`cd frontend && npm run test:e2e`, or `test:e2e:headed` to watch): 24 Playwright tests that drive the real app against the real API on a throwaway `crm_e2e` database: URL state, editing and validation, a real two-tab version conflict, single and bulk tags, filter validation, and layout. `npm run check` runs typecheck, lint, format check and both builds.
+- **Frontend** (`cd frontend && npm run test:e2e`, or `test:e2e:headed` to watch): 26 Playwright tests that drive the real app against the real API on a throwaway `crm_e2e` database: URL state, editing and validation, a real two-tab version conflict, single and bulk tags, filter validation, and layout. `npm run check` runs typecheck, lint, format check and both builds.
 
 ## Try the conflict scenario
 

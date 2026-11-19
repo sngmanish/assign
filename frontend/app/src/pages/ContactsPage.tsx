@@ -21,6 +21,7 @@ import {
   PAGE_SIZES,
 } from '../features/contacts/listState';
 import { useContactListState } from '../features/contacts/useContactListState';
+import { useCursorTrail } from '../features/contacts/useCursorTrail';
 import { contactColumns, toRow, type ContactRow } from '../features/contacts/columns';
 import { ContactsToolbar } from '../features/contacts/ContactsToolbar';
 import { BulkTagDialog } from '../features/contacts/BulkTagDialog';
@@ -36,6 +37,7 @@ const SORT_FOR_COLUMN = { name: 'name', created: 'createdAt' } as const;
 export function ContactsPage() {
   const dispatch = useAppDispatch();
   const { state, update, clearFilters, clearAll } = useContactListState();
+  const prevPage = useCursorTrail(state);
   const [bulkOpen, setBulkOpen] = useState(false);
 
   // Hints for things the API would refuse (more than 5 search words, From after To). While the
@@ -283,13 +285,7 @@ export function ContactsPage() {
           noun="Contacts"
           hasPrev={Boolean(data.prevCursor)}
           hasNext={Boolean(data.nextCursor)}
-          onPrev={() =>
-            data.prevCursor &&
-            update({
-              cursor: data.prevCursor,
-              page: Math.max(1, state.page - 1),
-            })
-          }
+          onPrev={() => data.prevCursor && update(prevPage(data.prevCursor))}
           onNext={() =>
             data.nextCursor && update({ cursor: data.nextCursor, page: state.page + 1 })
           }

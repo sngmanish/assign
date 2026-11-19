@@ -145,7 +145,7 @@ There's no login. To demo the brief's User A / User B conflict, each browser tab
 
 Playwright end-to-end tests in `app/e2e`, against the real API and a throwaway `crm_e2e` database that each run recreates and seeds (`npm run test:e2e`, or `test:e2e:headed` to watch). No unit or component test tooling for now.
 
-- List URL state: search, filters, sort, page size and page survive a refresh; paging above the count cap; empty results; not-found contact.
+- List URL state: search, filters, sort, page size and page survive a refresh; paging above the count cap (going back to a page reuses the cached result instead of asking again); empty results; not-found contact.
 - Editing: only changed fields plus `version` are sent, with `X-Actor` from the tab's choice; validation from client checks, a 422 and `EMAIL_TAKEN`; a failed save keeps the edits; the phone country search.
 - Conflicts: two tabs as Janardhan and Heer with a real 409: Merge both, no Merge both on overlap, Reload latest, Reapply my changes.
 - Tags: bulk assign with its result message and cleared selection; add and remove on one contact.

@@ -84,4 +84,62 @@ test.describe('contacts list', () => {
         .filter({ hasText: 'The start date must be on or before the end date' }),
     ).toBeVisible();
   });
+
+  test('above the cap, Prev reuses cached pages instead of asking again', async ({ page }) => {
+    const listRequests: string[] = [];
+    page.on('request', (r) => {
+      const url = new URL(r.url());
+      if (r.method() === 'GET' && url.port === '3100' && url.pathname === '/contacts') {
+        listRequests.push(url.search);
+      }
+    });
+    const rows = page.getByRole('checkbox', { name: /^Select (?!all)/ });
+    await page.goto('/contacts');
+    await expect(rows.first()).toBeAttached();
+    const firstOnPage1 = await rows.first().getAttribute('aria-label');
+
+    const next = page.getByRole('button', { name: /next/i });
+    const prev = page.getByRole('button', { name: /prev/i });
+    await next.click();
+    await expect(page).toHaveURL(/page=2/);
+    await next.click();
+    await expect(page).toHaveURL(/page=3/);
+    await prev.click();
+    await expect(page).toHaveURL(/page=2/);
+    await prev.click();
+    // page 1 is the plain address again, not a "prev" cursor
+    await expect(page).toHaveURL(/\/contacts$/);
+    await expect(rows.first()).toHaveAttribute('aria-label', firstOnPage1!);
+    await page.waitForLoadState('networkidle');
+
+    // page 1, then pages 2 and 3; going back came from the cache
+    expect(listRequests).toHaveLength(3);
+  });
+
+  test('a new sort starts the page history over', async ({ page }) => {
+    const rows = page.getByRole('checkbox', { name: /^Select (?!all)/ });
+    const next = page.getByRole('button', { name: /next/i });
+    const prev = page.getByRole('button', { name: /prev/i });
+    await page.goto('/contacts');
+    await expect(rows.first()).toBeAttached();
+    await next.click();
+    await expect(page).toHaveURL(/page=2/);
+    await next.click();
+    await expect(page).toHaveURL(/page=3/);
+
+    await page.getByRole('button', { name: /Sort:/ }).click();
+    await page.getByRole('option', { name: 'Oldest first' }).click();
+    await expect(page).not.toHaveURL(/page=/);
+    // the previous rows stay on screen while the new sort loads: wait for it
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+    const firstOldest = await rows.first().getAttribute('aria-label');
+
+    await next.click();
+    await expect(page).toHaveURL(/page=2/);
+    await prev.click();
+    await expect(page).not.toHaveURL(/cursor=|page=/);
+    await expect(page).toHaveURL(/order=asc/);
+    await expect(rows.first()).toHaveAttribute('aria-label', firstOldest!);
+  });
 });
